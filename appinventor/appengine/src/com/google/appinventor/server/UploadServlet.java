@@ -158,6 +158,25 @@ public class UploadServlet extends OdeServlet {
 
         uploadResponse = new UploadResponse(UploadResponse.Status.SUCCESS, 0,
           fileImporter.importTempFile(uploadedStream));
+      } else if (uploadKind.equals(ServerLayout.UPLOAD_API)) {
+        // TODO : implement this (copied the file upload code above)
+        uriComponents = uri.split("/", SPLIT_LIMIT_FILE);
+        long projectId = Long.parseLong(uriComponents[PROJECT_ID_INDEX]);
+        String fileName = uriComponents[FILE_PATH_INDEX];
+        InputStream uploadedStream;
+        try {
+          uploadedStream = getRequestStream(req, ServerLayout.UPLOAD_FILE_FORM_ELEMENT);
+        } catch (Exception e) {
+          throw CrashReport.createAndLogError(LOG, req, null, e);
+        }
+
+        try {
+          long modificationDate = fileImporter.importFile(userInfoProvider.getUserId(),
+              projectId, fileName, uploadedStream);
+          uploadResponse = new UploadResponse(UploadResponse.Status.SUCCESS, modificationDate);
+        } catch (FileImporterException e) {
+          uploadResponse = e.uploadResponse;
+        }
       } else {
         throw CrashReport.createAndLogError(LOG, req, null,
             new IllegalArgumentException("Unknown upload kind: " + uploadKind));

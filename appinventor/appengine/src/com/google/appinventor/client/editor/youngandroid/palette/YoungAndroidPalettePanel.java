@@ -17,6 +17,7 @@ import com.google.appinventor.client.editor.simple.palette.SimplePalettePanel;
 import com.google.appinventor.client.editor.youngandroid.YaFormEditor;
 import com.google.appinventor.client.explorer.project.ComponentDatabaseChangeListener;
 import com.google.appinventor.client.wizards.ComponentImportWizard;
+import com.google.appinventor.client.wizards.ApiImportWizard;
 import com.google.appinventor.common.version.AppInventorFeatures;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.gwt.core.client.JsArrayString;
@@ -224,6 +225,7 @@ public class YoungAndroidPalettePanel extends Composite implements SimplePalette
     }
 
     initExtensionPanel();
+    initAPIPanel();
   }
 
    /**
@@ -427,6 +429,7 @@ public class YoungAndroidPalettePanel extends Composite implements SimplePalette
     if (ComponentCategory.EXTENSION.equals(category)) {
       title = MESSAGES.extensionComponentPallette();
       initExtensionPanel();
+      initAPIPanel();
     } else {
       title = ComponentsTranslation.getCategoryName(category.getName());
     }
@@ -458,6 +461,21 @@ public class YoungAndroidPalettePanel extends Composite implements SimplePalette
 
     categoryPanels.get(ComponentCategory.EXTENSION).add(addComponentAnchor);
     categoryPanels.get(ComponentCategory.EXTENSION).setCellHorizontalAlignment(
+        addComponentAnchor, HasHorizontalAlignment.ALIGN_CENTER);
+  }
+
+  private void initAPIPanel() {
+    Anchor addComponentAnchor = new Anchor(MESSAGES.importAPIMenuItem());
+    addComponentAnchor.setStylePrimaryName("ode-ExtensionAnchor");
+    addComponentAnchor.addClickHandler(new ClickHandler() {
+      @Override
+      public void onClick(ClickEvent event) {
+        new ApiImportWizard().center();
+      }
+    });
+
+    categoryPanels.get(ComponentCategory.API).add(addComponentAnchor);
+    categoryPanels.get(ComponentCategory.API).setCellHorizontalAlignment(
         addComponentAnchor, HasHorizontalAlignment.ALIGN_CENTER);
   }
 

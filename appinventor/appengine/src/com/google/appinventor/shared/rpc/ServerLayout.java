@@ -138,6 +138,12 @@ public class ServerLayout {
 
   /**
    * Relative path within {@link com.google.appinventor.server.UploadServlet}
+   * for uploading an API
+   */
+  public static final String UPLOAD_API = "api";
+
+  /**
+   * Relative path within {@link com.google.appinventor.server.UploadServlet}
    * for uploading a file
    */
   public static final String UPLOAD_FILE = "file";
