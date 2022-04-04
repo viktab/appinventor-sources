@@ -281,4 +281,18 @@
     <servlet-name>componentService</servlet-name>
   </filter-mapping>
 
+  <!-- APIs -->
+  <servlet>
+    <servlet-name>apiService</servlet-name>
+    <servlet-class>com.google.appinventor.server.ApiServiceImpl</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>apiService</servlet-name>
+    <url-pattern>/ode/api</url-pattern>
+  </servlet-mapping>
+  <filter-mapping>
+    <filter-name>odeAuthFilter</filter-name>
+    <servlet-name>apiService</servlet-name>
+  </filter-mapping>
+
 </web-app>

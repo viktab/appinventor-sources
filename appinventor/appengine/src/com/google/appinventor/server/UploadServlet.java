@@ -60,6 +60,11 @@ public class UploadServlet extends OdeServlet {
   private static final int USERFILE_PATH_INDEX = 4;
   private static final int SPLIT_LIMIT_USERFILE = 5;
 
+  // Constants used when upload kind is "api".
+  // Since the file path may contain slashes, it must be the last component in the URI.
+  private static final int API_PATH_INDEX = 4;
+  private static final int SPLIT_LIMIT_API = 5;
+
   // Constants used when upload kind is "component".
   // Since the file path may contain slashes, it must be the last component in the URI.
   private static final int COMPONENT_PATH_INDEX = 4;
@@ -160,23 +165,22 @@ public class UploadServlet extends OdeServlet {
           fileImporter.importTempFile(uploadedStream));
       } else if (uploadKind.equals(ServerLayout.UPLOAD_API)) {
         // TODO : implement this (copied the file upload code above)
-        uriComponents = uri.split("/", SPLIT_LIMIT_FILE);
-        long projectId = Long.parseLong(uriComponents[PROJECT_ID_INDEX]);
-        String fileName = uriComponents[FILE_PATH_INDEX];
+        uriComponents = uri.split("/", SPLIT_LIMIT_API);
+        if (API_PATH_INDEX >= uriComponents.length) {
+          throw CrashReport.createAndLogError(LOG, req, null,
+              new IllegalArgumentException("Missing component file path."));
+        }
+
         InputStream uploadedStream;
         try {
-          uploadedStream = getRequestStream(req, ServerLayout.UPLOAD_FILE_FORM_ELEMENT);
+          uploadedStream = getRequestStream(req,
+              ServerLayout.UPLOAD_API_ARCHIVE_FORM_ELEMENT);
         } catch (Exception e) {
           throw CrashReport.createAndLogError(LOG, req, null, e);
         }
 
-        try {
-          long modificationDate = fileImporter.importFile(userInfoProvider.getUserId(),
-              projectId, fileName, uploadedStream);
-          uploadResponse = new UploadResponse(UploadResponse.Status.SUCCESS, modificationDate);
-        } catch (FileImporterException e) {
-          uploadResponse = e.uploadResponse;
-        }
+        uploadResponse = new UploadResponse(UploadResponse.Status.SUCCESS, 0,
+          fileImporter.importTempFile(uploadedStream));
       } else {
         throw CrashReport.createAndLogError(LOG, req, null,
             new IllegalArgumentException("Unknown upload kind: " + uploadKind));

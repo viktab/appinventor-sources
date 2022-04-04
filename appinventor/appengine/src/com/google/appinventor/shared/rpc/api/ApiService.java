@@ -12,7 +12,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 
 import java.util.List;
 
-@RemoteServiceRelativePath(ServerLayout.COMPONENT_SERVICE)
+@RemoteServiceRelativePath(ServerLayout.API_SERVICE)
 public interface ApiService extends RemoteService {
 
   /**

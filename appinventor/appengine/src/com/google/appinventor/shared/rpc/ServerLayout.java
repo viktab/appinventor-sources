@@ -43,6 +43,13 @@ public class ServerLayout {
 
   /**
    * Relative path of the
+   * {@link com.google.appinventor.shared.rpc.api.ApiService} within
+   * the ODE GWT module.
+   */
+  public static final String API_SERVICE = "api";
+
+  /**
+   * Relative path of the
    * {@link com.google.appinventor.shared.rpc.project.ProjectService} within
    * the ODE GWT module.
    */
@@ -187,6 +194,11 @@ public class ServerLayout {
    * Name of the form element to upload project archives.
    */
   public static final String UPLOAD_PROJECT_ARCHIVE_FORM_ELEMENT = "uploadProjectArchive";
+
+  /**
+   * Name of the form element to upload api archives.
+   */
+  public static final String UPLOAD_API_ARCHIVE_FORM_ELEMENT = "uploadApiArchive";
 
   /**
    * Name of the form element to upload component archives.

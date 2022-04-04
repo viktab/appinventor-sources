@@ -138,8 +138,8 @@ public class ApiImportWizard extends Wizard {
           // TODO : import the API!!
           Ode.CLog("got url but haven't done anything with it");
           Ode.CLog(url);
-        //   ode.getComponentService().importComponentToProject(url, projectId,
-        //       assetsFolderNode.getFileId(), new ImportComponentCallback());
+          ode.getApiService().importApiToProject(url, projectId,
+            assetsFolderNode.getFileId(), new ImportApiCallback());
         } else if (tabPanel.getTabBar().getSelectedTab() == FROM_MY_COMPUTER_TAB) {
         //   if (!fileUpload.getFilename().endsWith(COMPONENT_ARCHIVE_EXTENSION)) {
         //     Window.alert(MESSAGES.notComponentArchiveError());
@@ -161,8 +161,8 @@ public class ApiImportWizard extends Wizard {
                 String toImport = uploadResponse.getInfo();
                 Ode.CLog("upload response");
                 Ode.CLog(toImport);
-                // ode.getComponentService().importComponentToProject(toImport, projectId,
-                //     assetsFolderNode.getFileId(), new ImportComponentCallback());
+                ode.getApiService().importApiToProject(toImport, projectId,
+                    assetsFolderNode.getFileId(), new ImportApiCallback());
               }
             });
           return;
@@ -188,8 +188,8 @@ public class ApiImportWizard extends Wizard {
 
   private FileUpload createFileUpload() {
     FileUpload upload = new FileUpload();
-    upload.setName(ServerLayout.UPLOAD_COMPONENT_ARCHIVE_FORM_ELEMENT);
-    upload.getElement().setAttribute("accept", API_FILE_EXTENSION); // TODO check this
+    upload.setName(ServerLayout.UPLOAD_API_ARCHIVE_FORM_ELEMENT);
+    upload.getElement().setAttribute("accept", API_FILE_EXTENSION);
     return upload;
   }
 
