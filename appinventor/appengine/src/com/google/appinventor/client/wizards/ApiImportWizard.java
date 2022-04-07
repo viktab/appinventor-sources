@@ -91,7 +91,7 @@ public class ApiImportWizard extends Wizard {
   private static int FROM_MY_COMPUTER_TAB = 0;
   private static int URL_TAB = 1;
 
-  private static final String API_FILE_EXTENSION = ".txt,.pdf";
+  private static final String API_FILE_EXTENSION = ".txt,.pdf,.json";
 
   private static final Ode ode = Ode.getInstance();
 
