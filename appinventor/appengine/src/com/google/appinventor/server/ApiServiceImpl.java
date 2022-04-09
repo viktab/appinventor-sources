@@ -5,18 +5,27 @@ import com.google.appinventor.server.storage.StorageIoInstanceHolder;
 import com.google.appinventor.shared.rpc.api.ApiService;
 import com.google.appinventor.shared.rpc.api.ApiImportResponse;
 import com.google.appinventor.shared.rpc.api.ApiImportResponse.Status;
+import com.google.appinventor.shared.rpc.project.youngandroid.YoungAndroidComponentNode;
+import com.google.appinventor.shared.storage.StorageUtil;
+import com.google.appinventor.shared.rpc.project.FileNode;
+import com.google.appinventor.shared.rpc.project.ProjectNode;
 
 import com.google.common.io.ByteStreams;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -93,9 +102,9 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         LOG.info("rename API unimplemented");
     }
 
-    private Map<String, byte[]> extractContents(InputStream inputStream)
-      throws IOException {
-        LOG.info("extracting contents");
+    private Map<String, byte[]> extractContents(InputStream inputStream) throws IOException {
+        Map<String, byte[]> contents = new HashMap<String, byte[]>();
+
         StringBuilder sb = new StringBuilder();
         for (int ch; (ch = inputStream.read()) != -1; ) {
             sb.append((char) ch);
@@ -103,34 +112,41 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         String jsonStr = sb.toString();
         JSONObject json = new JSONObject(jsonStr);
         byte[] components = defineBlocks(json);
+        contents.put("components.json", components);
 
-        Map<String, byte[]> contents = new HashMap<String, byte[]>();
-
-        // assumption: the zip is non-empty
-        ZipInputStream zip = new ZipInputStream(inputStream);
-        ZipEntry entry;
-        while ((entry = zip.getNextEntry()) != null) {
-            if (entry.isDirectory())  continue;
-            ByteArrayOutputStream contentStream = new ByteArrayOutputStream();
-            ByteStreams.copy(zip, contentStream);
-            LOG.info("stream:");
-            LOG.info(contentStream.toString());
-            contents.put(entry.getName(), contentStream.toByteArray());
-            }
-        zip.close();
+        // TODO fill this later
+        byte[] build_info = new byte[0];
+        contents.put("files/component_build_infos.json", build_info);
 
         return contents;
+
+        // assumption: the zip is non-empty
+        // ZipInputStream zip = new ZipInputStream(inputStream);
+        // ZipEntry entry;
+        // while ((entry = zip.getNextEntry()) != null) {
+        //     if (entry.isDirectory())  continue;
+        //     ByteArrayOutputStream contentStream = new ByteArrayOutputStream();
+        //     ByteStreams.copy(zip, contentStream);
+        //     LOG.info("stream:");
+        //     LOG.info(contentStream.toString());
+        //     contents.put(entry.getName(), contentStream.toByteArray());
+        //     }
+        // zip.close();
+
+        // return contents;
     }
 
     // converts the OpenAPI spec into a components.json
     // OpenAPI spec: https://swagger.io/specification/
     private byte[] defineBlocks(JSONObject apiJSON) {
-        JSONObject componentsJSON = new JSONObject();
-        componentsJSON.put("nonVisible", "true");
+        JSONArray componentsJSON = new JSONArray();
+        JSONObject componentJSON = new JSONObject();
+        componentJSON.put("nonVisible", "true");
+        componentJSON.put("type", "text"); // TODO make this API-specific
 
         JSONObject infoObj = apiJSON.getJSONObject("info");
         String name = infoObj.getString("title");
-        componentsJSON.put("name", name);
+        componentJSON.put("name", name);
 
         // in theory every path could be its own component, I can try both options later
         JSONArray methods = new JSONArray();
@@ -167,7 +183,8 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 methods.put(operation);
             }
         }
-        componentsJSON.put("methods", methods);
+        componentJSON.put("methods", methods);
+        componentsJSON.put(componentJSON);
 
         String componentsStr = componentsJSON.toString();
         LOG.info("component string");
@@ -180,7 +197,65 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         // TODO convert API to blocks?
         LOG.info("will import the API here eventually");
         Status status = Status.IMPORTED;
+        final String userId = userInfoProvider.getUserId();
+        final String basepath = folderPath + "/external_comps/";
+         Map<String, String> nameMap = buildExtensionPathnameMap(contents.keySet());
+
+        // Does the extension contain a file that could be a component descriptor file?
+        if (!nameMap.containsKey("component.json") && !nameMap.containsKey("components.json")) {
+            response.setMessage("Uploaded file does not contain any component definition files.");
+            return;
+        }
+
+        JSONArray newComponents = readComponents(contents.get(nameMap.get("components.json")));
+        if (newComponents == null || newComponents.length() == 0) {
+            response.setMessage("No valid component descriptors found in the extension.");
+            return;
+        }
+
+        // Write new extension files
+        List<ProjectNode> compNodes = new ArrayList<>();
+        for (Map.Entry<String, byte[]> entry : contents.entrySet()) {
+            String dest = basepath + entry.getKey();
+            FileNode fileNode = new YoungAndroidComponentNode(StorageUtil.basename(entry.getKey()), dest);
+            fileImporter.importFile(userId, projectId, dest, new ByteArrayInputStream(entry.getValue()));
+            compNodes.add(fileNode);
+        }
+
+        // Extract type map to send to clients
+        Map<String, String> types = new TreeMap<>();
+        for (int i = 0; i < newComponents.length(); i++) {
+            JSONObject desc = newComponents.getJSONObject(i);
+            types.put(desc.getString("type"), desc.getString("name"));
+        }
+
         response.setStatus(status);
+        response.setComponentTypes(types);
+        response.setNodes(compNodes);
+    }
+
+    private static JSONArray readComponents(String content) {
+        content = content.trim();  // remove extraneous whitespace
+        if (content.startsWith("{") && content.endsWith("}")) {
+            return new JSONArray("[" + content + "]");
+        } else if (content.startsWith("[") && content.endsWith("]")) {
+            return new JSONArray(content);
+        } else {
+            // content is neither a JSONObject {...} nor a JSONArray [...]. This is an error state.
+            throw new IllegalArgumentException("Content was not a valid component descriptor file");
+        }
+    }
+    
+    private static Map<String, String> buildExtensionPathnameMap(Set<String> paths) {
+        Map<String, String> result = new HashMap<>();
+        for (String name : paths) {
+            result.put(StorageUtil.basename(name), name);
+        }
+        return result;
+    }
+
+    private static JSONArray readComponents(byte[] content) throws UnsupportedEncodingException {
+        return readComponents(new String(content, StorageUtil.DEFAULT_CHARSET));
     }
 
     private String collectImportErrorInfo(String path, long projectId) {
