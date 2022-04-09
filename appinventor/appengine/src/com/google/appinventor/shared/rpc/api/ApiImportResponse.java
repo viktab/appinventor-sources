@@ -72,6 +72,10 @@ public class ApiImportResponse implements IsSerializable{
     this.projectId = projectId;
   }
 
+  public void setComponentTypes(Map<String, String> types) {
+    this.types = types;
+  }
+
   public List<ProjectNode> getNodes() {
     if (nodes == null) {
       nodes = new ArrayList<ProjectNode>();

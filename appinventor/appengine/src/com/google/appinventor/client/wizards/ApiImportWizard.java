@@ -72,18 +72,18 @@ public class ApiImportWizard extends Wizard {
         // TODO : add the API??
         Ode.CLog("successfuly imported!!");
 
-        // YoungAndroidComponentsFolder componentsFolder = ((YoungAndroidProjectNode) project.getRootNode()).getComponentsFolder();
-        // YaProjectEditor projectEditor = (YaProjectEditor) ode.getEditorManager().getOpenProjectEditor(destinationProjectId);
-        // if (projectEditor == null) {
-        //   return; // Project is not open!
-        // }
-        // for (ProjectNode node : compNodes) {
-        //   project.addNode(componentsFolder, node);
-        //   if ((node.getName().equals("component.json") || node.getName().equals("components.json"))
-        //       && StringUtils.countMatches(node.getFileId(), "/") == 3) {
-        //     projectEditor.addComponent(node, null);
-        //   }
-        // }
+        YoungAndroidComponentsFolder componentsFolder = ((YoungAndroidProjectNode) project.getRootNode()).getComponentsFolder();
+        YaProjectEditor projectEditor = (YaProjectEditor) ode.getEditorManager().getOpenProjectEditor(destinationProjectId);
+        if (projectEditor == null) {
+          return; // Project is not open!
+        }
+        for (ProjectNode node : compNodes) {
+          project.addNode(componentsFolder, node);
+          if ((node.getName().equals("component.json") || node.getName().equals("components.json"))
+              && StringUtils.countMatches(node.getFileId(), "/") == 3) {
+            projectEditor.addComponent(node, null);
+          }
+        }
       }
     }
   }
