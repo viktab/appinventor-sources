@@ -44,6 +44,10 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
 
     private final FileImporter fileImporter = new FileImporterImpl();
 
+    private final String apiFolder = "/api_comps";
+
+    private String subDirectory = "";
+
     private static final Set<String> operationTypes = new HashSet<String>();
     static {
         operationTypes.add("get");
@@ -142,11 +146,24 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         JSONArray componentsJSON = new JSONArray();
         JSONObject componentJSON = new JSONObject();
         componentJSON.put("nonVisible", "true");
+        componentJSON.put("version", "1");
+        componentJSON.put("external", "true");
+        componentJSON.put("categoryString", "API");
+        componentJSON.put("helpString", "");
+        componentJSON.put("showOnPalette", "true");
+        componentJSON.put("iconName", "ball.png"); // TODO update
         componentJSON.put("type", "text"); // TODO make this API-specific
 
         JSONObject infoObj = apiJSON.getJSONObject("info");
         String name = infoObj.getString("title");
         componentJSON.put("name", name);
+
+        JSONArray servers = apiJSON.getJSONArray("servers");
+        JSONObject serverObj = servers.getJSONObject(0);
+        String url = serverObj.getString("url");
+        String[] urlParts = url.split("/");
+        subDirectory = "/" + urlParts[2] + "/";
+        LOG.info("subDirectory: " + subDirectory);
 
         // in theory every path could be its own component, I can try both options later
         JSONArray methods = new JSONArray();
@@ -179,11 +196,21 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 } catch (Exception e) {
                     operation.put("deprecated", "false");
                 }
+                JSONArray params = new JSONArray();
+                operation.put("params", params);
                 // TODO: add more operation info (this is just enough to make some blocks for now)
                 methods.put(operation);
             }
         }
         componentJSON.put("methods", methods);
+
+        JSONArray properties = new JSONArray();
+        componentJSON.put("properties", properties);
+        JSONArray blockProperties = new JSONArray();
+        componentJSON.put("blockProperties", blockProperties);
+        JSONArray events = new JSONArray();
+        componentJSON.put("events", events);
+
         componentsJSON.put(componentJSON);
 
         String componentsStr = componentsJSON.toString();
@@ -198,7 +225,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         LOG.info("will import the API here eventually");
         Status status = Status.IMPORTED;
         final String userId = userInfoProvider.getUserId();
-        final String basepath = folderPath + "/external_comps/";
+        final String basepath = folderPath + apiFolder + subDirectory;
          Map<String, String> nameMap = buildExtensionPathnameMap(contents.keySet());
 
         // Does the extension contain a file that could be a component descriptor file?
