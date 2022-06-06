@@ -190,6 +190,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 operation.put("name", operationName);
                 String description = operationObj.getString("description");
                 operation.put("description", description);
+                // TODO add more info to the description
                 try {
                     Boolean deprecated = operationObj.getBoolean("deprecated");
                     operation.put("deprecated", String.valueOf(deprecated).toLowerCase());
@@ -197,8 +198,20 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                     operation.put("deprecated", "false");
                 }
                 JSONArray params = new JSONArray();
+                try {
+                    JSONArray paramsList = operationObj.getJSONArray("parameters");
+                    int numParams = paramsList.length();
+                    for (int i = 0; i < numParams; i++) {
+                        JSONObject paramObj = paramsList.getJSONObject(i);
+                        String paramName = paramObj.getString("name");
+                        JSONObject param = new JSONObject();
+                        param.put("name", paramName);
+                        param.put("type", "text");
+                        params.put(param);
+                    }
+                } catch (JSONException e) {
+                }
                 operation.put("params", params);
-                // TODO: add more operation info (this is just enough to make some blocks for now)
                 methods.put(operation);
             }
         }
