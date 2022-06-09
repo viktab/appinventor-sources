@@ -22,9 +22,10 @@ public interface ApiService extends RemoteService {
    * @param fileOrUrl the url of the component file or filename of temp file
    * @param projectId id of the project to which the component will be added
    * @param folderPath folder to which the component will be stored
+   * @param fileType type of file storing the api (json or yaml)
    * @return a list of ProjectNode created from the component
    */
-  ApiImportResponse importApiToProject(String fileOrUrl, long projectId, String folderPath);
+  ApiImportResponse importApiToProject(String fileOrUrl, long projectId, String folderPath, String fileType);
 
   /**
    * Rename the short name of an imported API

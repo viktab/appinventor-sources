@@ -260,6 +260,7 @@
     <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/firebase/firebase-token-generator-2.0.0.jar" />
     <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/commons-codec/commons-codec-1.7.jar" />
     <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/json/json.jar" />
+    <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/snakeyaml/snakeyaml-1.30.jar" />
     <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/keyczar/keyczar-0.66-080111-java-1.6.jar" />
     <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/objectify-3.1/objectify-3.1.jar" />
     <copy todir="${build.war.dir}/WEB-INF/lib" file="${lib.dir}/gson/gson-2.1.jar" />  <!-- for keyczar -->

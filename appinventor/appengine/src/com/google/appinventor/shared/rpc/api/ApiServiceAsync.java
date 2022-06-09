@@ -12,9 +12,9 @@ import java.util.List;
 public interface ApiServiceAsync {
 
   /**
-   * @see ApiService#importApiToProject(String, long, String)
+   * @see ApiService#importApiToProject(String, long, String, String)
    */
-  void importApiToProject(String forOrUrl, long projectId, String folderPath,
+  void importApiToProject(String forOrUrl, long projectId, String folderPath, String fileType,
       AsyncCallback<ApiImportResponse> callback);
 
   /**

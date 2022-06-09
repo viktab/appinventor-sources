@@ -91,7 +91,7 @@ public class ApiImportWizard extends Wizard {
   private static int FROM_MY_COMPUTER_TAB = 0;
   private static int URL_TAB = 1;
 
-  private static final String API_FILE_EXTENSION = ".txt,.pdf,.json";
+  private static final String API_FILE_EXTENSION = ".txt,.pdf,.json,.yaml,.yml";
 
   private static final Ode ode = Ode.getInstance();
 
@@ -135,11 +135,14 @@ public class ApiImportWizard extends Wizard {
             return;
           }
 
-          // TODO : import the API!!
-          Ode.CLog("got url but haven't done anything with it");
-          Ode.CLog(url);
+          String type = "YAML";
+          if (url.endsWith("json") || url.endsWith("JSON")) {
+            type = "JSON";
+          }
+          final String fileType = type;
+
           ode.getApiService().importApiToProject(url, projectId,
-            assetsFolderNode.getFileId(), new ImportApiCallback());
+            assetsFolderNode.getFileId(), fileType, new ImportApiCallback());
         } else if (tabPanel.getTabBar().getSelectedTab() == FROM_MY_COMPUTER_TAB) {
         //   if (!fileUpload.getFilename().endsWith(COMPONENT_ARCHIVE_EXTENSION)) {
         //     Window.alert(MESSAGES.notComponentArchiveError());
@@ -153,6 +156,11 @@ public class ApiImportWizard extends Wizard {
           
           Ode.CLog("got file... uploading!");
           Ode.CLog(url);
+          String type = "YAML";
+          if (fileUpload.getFilename().endsWith("json") || fileUpload.getFilename().endsWith("JSON")) {
+              type = "JSON";
+          }
+          final String fileType = type;
 
           Uploader.getInstance().upload(fileUpload, url,
             new OdeAsyncCallback<UploadResponse>() {
@@ -162,7 +170,7 @@ public class ApiImportWizard extends Wizard {
                 Ode.CLog("upload response");
                 Ode.CLog(toImport);
                 ode.getApiService().importApiToProject(toImport, projectId,
-                    assetsFolderNode.getFileId(), new ImportApiCallback());
+                    assetsFolderNode.getFileId(), fileType, new ImportApiCallback());
               }
             });
           return;

@@ -35,6 +35,8 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import org.yaml.snakeyaml.Yaml;
+
 public class ApiServiceImpl extends OdeRemoteServiceServlet
     implements ApiService {
 
@@ -61,7 +63,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
     }
 
     @Override
-    public ApiImportResponse importApiToProject(String fileOrUrl, long projectId, String folderPath) {
+    public ApiImportResponse importApiToProject(String fileOrUrl, long projectId, String folderPath, String fileType) {
 
         ApiImportResponse response = new ApiImportResponse(ApiImportResponse.Status.FAILED);
         response.setProjectId(projectId);
@@ -71,10 +73,10 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         try {
             if (fileOrUrl.startsWith("__TEMP__")) {
                 fileNameToDelete = fileOrUrl;
-                contents = extractContents(storageIo.openTempFile(fileOrUrl));
+                contents = extractContents(storageIo.openTempFile(fileOrUrl), fileType);
             } else {
                 URL compUrl = new URL(fileOrUrl);
-                contents = extractContents(compUrl.openStream());
+                contents = extractContents(compUrl.openStream(), fileType);
             }
             importToProject(contents, projectId, folderPath, response);
             return response;
@@ -106,17 +108,24 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         LOG.info("rename API unimplemented");
     }
 
-    private Map<String, byte[]> extractContents(InputStream inputStream) throws IOException {
+    private Map<String, byte[]> extractContents(InputStream inputStream, String fileType) throws IOException {
         Map<String, byte[]> contents = new HashMap<String, byte[]>();
 
         StringBuilder sb = new StringBuilder();
         for (int ch; (ch = inputStream.read()) != -1; ) {
             sb.append((char) ch);
+        } if (fileType.equals("JSON")) {
+            String jsonStr = sb.toString();
+            JSONObject json = new JSONObject(jsonStr);
+            byte[] components = defineJSONBlocks(json);
+            contents.put("components.json", components);
+        } else {
+            String yamlStr = sb.toString();
+            Yaml yaml = new Yaml();
+            Map<String, Object> obj = yaml.load(inputStream);
+            byte[] components = defineYAMLBlocks(obj);
+            contents.put("components.json", components);
         }
-        String jsonStr = sb.toString();
-        JSONObject json = new JSONObject(jsonStr);
-        byte[] components = defineBlocks(json);
-        contents.put("components.json", components);
 
         // TODO fill this later
         byte[] build_info = new byte[0];
@@ -142,7 +151,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
 
     // converts the OpenAPI spec into a components.json
     // OpenAPI spec: https://swagger.io/specification/
-    private byte[] defineBlocks(JSONObject apiJSON) {
+    private byte[] defineJSONBlocks(JSONObject apiJSON) {
         JSONArray componentsJSON = new JSONArray();
         JSONObject componentJSON = new JSONObject();
         componentJSON.put("nonVisible", "true");
@@ -230,6 +239,11 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         LOG.info("component string");
         LOG.info(componentsStr);
         return componentsStr.getBytes();
+    }
+
+    private byte[] defineYAMLBlocks(Map<String, Object> map) {
+        // TODO convert map to component
+        return new byte[0];
     }
 
     private void importToProject(Map<String, byte[]> contents, long projectId,
