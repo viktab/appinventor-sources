@@ -43,13 +43,14 @@ public interface ComponentDatabaseInterface {
     private final Map<String, String> propertiesTypesByName;
     private final boolean nonVisible;
     private final String iconName;
+    private final Boolean isAPI;
     private final String licenseName;
     private final String typeDescription;
 
     public ComponentDefinition(String name, int version, String versionName, String dateBuilt, String type, boolean external,
               String categoryString, String helpString, String helpUrl,
               boolean showOnPalette, boolean nonVisible, String iconName,
-              String licenseName, String typeDescription) {
+              boolean isAPI, String licenseName, String typeDescription) {
       this.name = name;
       this.version = version;
       this.versionName = versionName;
@@ -68,6 +69,7 @@ public interface ComponentDatabaseInterface {
       this.propertiesTypesByName = new HashMap<String, String>();
       this.nonVisible = nonVisible;
       this.iconName = iconName;
+      this.isAPI = isAPI;
       this.licenseName = licenseName;
       this.typeDescription = typeDescription;
     }
@@ -157,6 +159,10 @@ public interface ComponentDatabaseInterface {
 
     public String getIconName() {
       return iconName;
+    }
+
+    public boolean getIsAPI() {
+      return isAPI;
     }
 
     public String getLicenseName() {
@@ -467,6 +473,12 @@ public interface ComponentDatabaseInterface {
    * icon to be shown in the Designer
    */
   String getIconName(String componentName);
+
+  /**
+   * Returns a true if the component is from an imported OpenAPI spec,
+   * false otherwise
+   */
+  boolean getIsAPI(String componentName);
 
   /**
    * Returns the name of the license file used by the component. Intended for use

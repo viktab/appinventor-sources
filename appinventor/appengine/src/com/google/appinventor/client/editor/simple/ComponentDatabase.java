@@ -256,6 +256,16 @@ class ComponentDatabase implements ComponentDatabaseInterface {
   }
 
   @Override
+  public boolean getIsAPI(String componentName) {
+    ComponentDefinition component = components.get(componentName);
+    if (component == null) {
+      throw new ComponentNotFoundException(componentName);
+    }
+
+    return component.getIsAPI();
+  }
+
+  @Override
   public String getLicenseName(String componentName) {
     ComponentDefinition component = components.get(componentName);
     if (component == null) {
@@ -351,6 +361,7 @@ class ComponentDatabase implements ComponentDatabaseInterface {
         Boolean.valueOf(properties.get("showOnPalette").asString().getString()),
         Boolean.valueOf(properties.get("nonVisible").asString().getString()),
         properties.get("iconName").asString().getString(),
+        properties.containsKey("isAPI") ? Boolean.valueOf(properties.get("isAPI").asString().getString()) : false,
         properties.containsKey("licenseName") ? properties.get("licenseName").asString().getString() : "",
         componentNode.toJson());
     findComponentProperties(component, properties.get("properties").asArray());

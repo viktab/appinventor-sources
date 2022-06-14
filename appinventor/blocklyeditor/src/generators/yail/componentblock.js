@@ -26,7 +26,11 @@ goog.provide('Blockly.Yail.componentblock');
  * @param {String} eventName  the type of event, e.g., Click
  * @returns {Function} event code generation function with instanceName and eventName bound in
  */
-Blockly.Yail.component_event = function() {
+Blockly.Yail.component_event = function() { // want to make a new block type for openapi?
+                                            // "this" is the block - this.typename will tell you if its an openapi
+                                            // method helper??
+                                            // component type method or component method??
+                                            // want to log in as administrator, can right click on block and click generate yail
 
   var preamble;
   if (this.isGeneric) {
@@ -146,7 +150,7 @@ Blockly.Yail.genericMethodNoReturn = function(typeName, methodName) {
  * @returns {Function} method call generation function with instanceName and methodName bound in
  */
 Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
-  var componentDb = methodBlock.workspace.getComponentDatabase();
+  var componentDb = methodBlock.workspace.getComponentDatabase(); ////
 
 // TODO: the following line  may be a bit of a hack because it hard-codes "component" as the
 // first argument type when we're generating yail for a generic block, instead of using

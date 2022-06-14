@@ -122,7 +122,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         } else {
             String yamlStr = sb.toString();
             Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(inputStream);
+            Map<String, Object> obj = yaml.load(yamlStr);
             byte[] components = defineYAMLBlocks(obj);
             contents.put("components.json", components);
         }
@@ -162,6 +162,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         componentJSON.put("showOnPalette", "true");
         componentJSON.put("iconName", "ball.png"); // TODO update
         componentJSON.put("type", "text"); // TODO make this API-specific
+        componentJSON.put("isAPI", "true");
 
         JSONObject infoObj = apiJSON.getJSONObject("info");
         String name = infoObj.getString("title");
@@ -242,8 +243,9 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
     }
 
     private byte[] defineYAMLBlocks(Map<String, Object> map) {
-        // TODO convert map to component
-        return new byte[0];
+        JSONObject json = new JSONObject(map);
+        byte[] components = defineJSONBlocks(json);
+        return components;
     }
 
     private void importToProject(Map<String, byte[]> contents, long projectId,
