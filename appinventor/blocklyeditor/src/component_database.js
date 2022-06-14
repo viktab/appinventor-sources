@@ -382,8 +382,6 @@ Blockly.ComponentDatabase.prototype.getComponentNamesByType = function(component
 Blockly.ComponentDatabase.prototype.populateTypes = function(componentInfos) { // gets called w component structure
   // need new property on componentInfo that tells u it's an openapi component
 
-  console.log("populating types??");
-
   var j, event, method, property;
   for (var i = 0, componentInfo; componentInfo = componentInfos[i]; ++i) {
     var info = this.types_[componentInfo.name] = {
@@ -396,8 +394,6 @@ Blockly.ComponentDatabase.prototype.populateTypes = function(componentInfos) { /
       setPropertyList: [],
       getPropertyList: []
     };
-    console.log(componentInfo);
-    console.log(componentInfo['isAPI']);
 
     // parse type description and fill in all of the fields
     for (j = 0; event = componentInfo.events[j]; ++j) {

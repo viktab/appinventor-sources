@@ -10,6 +10,7 @@ import com.google.appinventor.client.explorer.project.Project;
 import com.google.appinventor.client.explorer.project.ProjectChangeListener;
 
 import com.google.appinventor.client.output.OdeLog;
+import com.google.appinventor.client.Ode;
 
 import com.google.appinventor.common.utils.StringUtils;
 
@@ -62,6 +63,7 @@ public final class AssetManager implements ProjectChangeListener {
   private static boolean DEBUG = false;
   private static final String ASSETS_FOLDER = "assets";
   private static final String EXTERNAL_COMPS_FOLDER = "external_comps";
+  private static final String API_COMPS_FOLDER = "api_comps";
 
   private AssetManager() {
     exportMethodsToJavascript();
@@ -185,6 +187,10 @@ public final class AssetManager implements ProjectChangeListener {
             return true;
           }
         }
+      }
+      // Filter: for files in API_FOLDER (OpenAPI components)
+      if (fileId.startsWith(ASSETS_FOLDER + "/" + API_COMPS_FOLDER + '/')) {
+        allow = false;
       }
     }
     return allow | allowAll;
