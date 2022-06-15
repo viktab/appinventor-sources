@@ -152,6 +152,11 @@ Blockly.Yail.genericMethodNoReturn = function(typeName, methodName) {
 Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
   var componentDb = methodBlock.workspace.getComponentDatabase(); ////
 
+  var isAPI = componentDb['types_'][methodBlock.typeName]['componentInfo']['isAPI'];
+  if (isAPI) {
+    methodName = "invokeAPI";
+  }
+
 // TODO: the following line  may be a bit of a hack because it hard-codes "component" as the
 // first argument type when we're generating yail for a generic block, instead of using
 // type information associated with the socket. The component parameter is treated differently
