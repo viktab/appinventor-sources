@@ -289,7 +289,9 @@ Blockly.ComponentDatabase.prototype.hasType = function(typeName) {
  * type is registered with the supplied typeName.
  */
 Blockly.ComponentDatabase.prototype.getType = function(typeName) {
-  return this.types_[typeName];
+  var type = this.types_[typeName];
+  var isAPI = type['componentInfo']['isAPI'];
+  return isAPI ? this.types_["OpenAPI"] : type;
 };
 
 /**

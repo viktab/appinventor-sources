@@ -176,6 +176,7 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
   //var yailTypes = (generic ? [Blockly.Yail.YAIL_COMPONENT_TYPE] : []).concat(methodBlock.yailTypes);
   var callPrefix;
   if (generic) {
+    console.log("componentblock 1");
     name = componentDb.getType(name).type;
     callPrefix = continuation ? Blockly.Yail.YAIL_CALL_COMPONENT_TYPE_METHOD_BLOCKING : Blockly.Yail.YAIL_CALL_COMPONENT_TYPE_METHOD
         // TODO(hal, andrew): check for empty socket and generate error if necessary
@@ -198,6 +199,12 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     // TODO(hal, andrew): check for empty socket and generate error if necessary
     args.push(Blockly.Yail.YAIL_SPACER
               + Blockly.Yail.valueToCode(methodBlock, 'ARG' + x, Blockly.Yail.ORDER_NONE));
+  }
+
+  console.log("inside method helper");
+  var isAPI = componentDb['types_'][methodBlock.typeName]['componentInfo']['isAPI'];
+  if (isAPI) {
+    methodName = "invokeAPI";
   }
 
   return callPrefix
@@ -267,6 +274,7 @@ Blockly.Yail.genericSetproperty = function() {
   var propertyName = this.getFieldValue("PROP");
   var propType = this.getPropertyObject(propertyName).type;
   var assignLabel = Blockly.Yail.YAIL_QUOTE
+  console.log("componentblock 2");
     + this.workspace.getComponentDatabase().getType(this.typeName).type + Blockly.Yail.YAIL_SPACER
     + Blockly.Yail.YAIL_QUOTE + propertyName;
   var code = Blockly.Yail.YAIL_SET_AND_COERCE_COMPONENT_TYPE_PROPERTY
@@ -316,6 +324,7 @@ Blockly.Yail.getproperty = function(instanceName) {
 Blockly.Yail.genericGetproperty = function(typeName) {
   var propertyName = this.getFieldValue("PROP");
   var propType = this.getPropertyObject(propertyName).type;
+  console.log("componentblock 3");
   var code = Blockly.Yail.YAIL_GET_COMPONENT_TYPE_PROPERTY
     // TODO(hal, andrew): check for empty socket and generate error if necessary
     + Blockly.Yail.valueToCode(this, 'COMPONENT', Blockly.Yail.ORDER_NONE)

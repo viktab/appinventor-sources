@@ -222,8 +222,7 @@ Blockly.Drawer.prototype.blockListToXMLArray = function(blockList) {
 Blockly.Drawer.prototype.instanceRecordToXMLArray = function(instanceRecord) {
   var xmlArray = [];
   var typeName = instanceRecord.typeName;
-  var componentInfo = this.workspace_.getComponentDatabase().getType(typeName);
-
+  var componentInfo = this.workspace_.getComponentDatabase().types_[typeName];
   var formName = Blockly.mainWorkspace.formName;
   var screenName = formName.substring(formName.indexOf("_") + 1);
   var subsetJsonString = "";
