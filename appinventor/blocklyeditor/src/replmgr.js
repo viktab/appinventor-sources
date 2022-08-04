@@ -499,7 +499,7 @@ Blockly.ReplMgr.putYail = (function() {
                     console.log("webrtc(onmessage): " + ev.data);
                     var json = goog.json.parse(ev.data);
                     if (json.status == 'OK') {
-                        context.processRetvals(json.values);
+                        Blockly.ReplMgr.processRetvals(json.values);
                     }
                 };
                 // Ready to actually exchange data
@@ -714,7 +714,7 @@ Blockly.ReplMgr.putYail = (function() {
                         if (work.success)
                             work.success();
                     }
-                    context.processRetvals(json.values);
+                    Blockly.ReplMgr.processRetvals(json.values);
                     rs.seq_count += 1;
                     if (rs.phoneState.initialized) { // Only continue if we are still initialized
                         rs.phoneState.ioRunning = false;
@@ -754,7 +754,7 @@ Blockly.ReplMgr.putYail = (function() {
                 if (this.status == 200) {
                     var json = goog.json.parse(this.response);
                     if (json.status == 'OK') {
-                        context.processRetvals(json.values);
+                        Blockly.ReplMgr.processRetvals(json.values);
                     }
                     engine.receivefromphone(); // Continue...
                 }
