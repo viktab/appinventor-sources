@@ -362,6 +362,7 @@ class ComponentDatabase implements ComponentDatabaseInterface {
         Boolean.valueOf(properties.get("nonVisible").asString().getString()),
         properties.get("iconName").asString().getString(),
         properties.containsKey("isAPI") ? Boolean.valueOf(properties.get("isAPI").asString().getString()) : false,
+        properties.containsKey("APICode") ? properties.get("APICode").asString().getString() : "",
         properties.containsKey("licenseName") ? properties.get("licenseName").asString().getString() : "",
         componentNode.toJson());
     findComponentProperties(component, properties.get("properties").asArray());

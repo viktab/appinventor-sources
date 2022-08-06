@@ -152,11 +152,6 @@ Blockly.Yail.genericMethodNoReturn = function(typeName, methodName) {
 Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
   var componentDb = methodBlock.workspace.getComponentDatabase(); ////
 
-  var isAPI = componentDb['types_'][methodBlock.typeName]['componentInfo']['isAPI'];
-  if (isAPI) {
-    methodName = "invokeAPI";
-  }
-
 // TODO: the following line  may be a bit of a hack because it hard-codes "component" as the
 // first argument type when we're generating yail for a generic block, instead of using
 // type information associated with the socket. The component parameter is treated differently
@@ -201,10 +196,13 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
               + Blockly.Yail.valueToCode(methodBlock, 'ARG' + x, Blockly.Yail.ORDER_NONE));
   }
 
-  console.log("inside method helper");
   var isAPI = componentDb['types_'][methodBlock.typeName]['componentInfo']['isAPI'];
   if (isAPI) {
+    var apiCode = componentDb['types_'][methodBlock.typeName]['componentInfo']['APICode']
+    var blockCode = Blockly.Yail.getAPICode(methodName, apiCode);
     methodName = "invokeAPI";
+    args = " \"" + blockCode + "\"";
+    yailTypes = ["text"];
   }
 
   return callPrefix
@@ -216,7 +214,7 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     + Blockly.Yail.YAIL_SPACER
     + Blockly.Yail.YAIL_OPEN_COMBINATION
     + Blockly.Yail.YAIL_LIST_CONSTRUCTOR
-    + args.join(' ')
+    + args
     + Blockly.Yail.YAIL_CLOSE_COMBINATION
     + Blockly.Yail.YAIL_SPACER
     + Blockly.Yail.YAIL_QUOTE
@@ -352,3 +350,22 @@ Blockly.Yail.component_component_block = function() {
   return [Blockly.Yail.YAIL_GET_COMPONENT + this.getFieldValue("COMPONENT_SELECTOR") + Blockly.Yail.YAIL_CLOSE_COMBINATION,
           Blockly.Yail.ORDER_ATOMIC];
 };
+
+Blockly.Yail.getAPICode = function(methodName, apiCode) {
+  var apiAsJSON = JSON.parse(apiCode);
+  var allFuncs = apiAsJSON.functions;
+  var myFunc;
+  for (var i = 0; i < allFuncs.length; i++) {
+    var currFunc = allFuncs[i];
+    if (currFunc.name == methodName) {
+      myFunc = currFunc;
+      break;
+    }
+  }
+  var funcAsJSON = {
+    "serverUrl": apiAsJSON.serverUrl,
+    "funcInfo": myFunc
+  }
+  var funcAsStr = JSON.stringify(funcAsJSON);
+  return funcAsStr.replaceAll("\"", "\\\"");
+}

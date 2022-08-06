@@ -154,6 +154,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
     private byte[] defineJSONBlocks(JSONObject apiJSON) {
         JSONArray componentsJSON = new JSONArray();
         JSONObject componentJSON = new JSONObject();
+        JSONObject functionJSON = new JSONObject();
         componentJSON.put("nonVisible", "true");
         componentJSON.put("version", "1");
         componentJSON.put("external", "true");
@@ -170,13 +171,15 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
 
         JSONArray servers = apiJSON.getJSONArray("servers");
         JSONObject serverObj = servers.getJSONObject(0);
-        String url = serverObj.getString("url");
-        String[] urlParts = url.split("/");
+        String serverUrl = serverObj.getString("url");
+        functionJSON.put("serverUrl", serverUrl);
+        String[] urlParts = serverUrl.split("/");
         subDirectory = "/" + urlParts[2] + "/";
         LOG.info("subDirectory: " + subDirectory);
 
         // in theory every path could be its own component, I can try both options later
         JSONArray methods = new JSONArray();
+        JSONArray methodsCode = new JSONArray();
         JSONObject pathsObj = apiJSON.getJSONObject("paths");
         Set pathSet = pathsObj.keySet();
         Iterator<String> pathItr = pathSet.iterator();
@@ -194,10 +197,14 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 }
                 JSONObject operation = new JSONObject();
                 JSONObject operationObj = pathObj.getJSONObject(key);
+                JSONObject operationCode = new JSONObject();
+                operationCode.put("OPType", key);
+                operationCode.put("path", path);
                 // operationID not required, might need to find another way to name operations without it
                 String operationID = operationObj.getString("operationId");
                 String operationName = key + "_" + operationID;
                 operation.put("name", operationName);
+                operationCode.put("name", operationName);
                 String description = operationObj.getString("description");
                 operation.put("description", description);
                 // TODO add more info to the description
@@ -223,6 +230,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 }
                 operation.put("params", params);
                 methods.put(operation);
+                methodsCode.put(operationCode);
             }
         }
         componentJSON.put("methods", methods);
@@ -233,6 +241,9 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         componentJSON.put("blockProperties", blockProperties);
         JSONArray events = new JSONArray();
         componentJSON.put("events", events);
+        functionJSON.put("functions", methodsCode);
+        String APICodeStr = functionJSON.toString();
+        componentJSON.put("APICode", APICodeStr);
 
         componentsJSON.put(componentJSON);
 

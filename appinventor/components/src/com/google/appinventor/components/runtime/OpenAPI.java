@@ -50,10 +50,10 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   }
 
   @SimpleFunction
-  public void invokeAPI() {
+  public void invokeAPI(final String function) {
     handler.post(new Runnable() {
         public void run() {
-        toastNow("yay it did something");
+        toastNow(function);
         }
     });
   }

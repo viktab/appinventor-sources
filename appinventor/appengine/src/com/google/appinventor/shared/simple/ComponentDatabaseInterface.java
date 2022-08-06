@@ -44,13 +44,14 @@ public interface ComponentDatabaseInterface {
     private final boolean nonVisible;
     private final String iconName;
     private final Boolean isAPI;
+    private final String APICode;
     private final String licenseName;
     private final String typeDescription;
 
     public ComponentDefinition(String name, int version, String versionName, String dateBuilt, String type, boolean external,
               String categoryString, String helpString, String helpUrl,
               boolean showOnPalette, boolean nonVisible, String iconName,
-              boolean isAPI, String licenseName, String typeDescription) {
+              boolean isAPI, String APICode, String licenseName, String typeDescription) {
       this.name = name;
       this.version = version;
       this.versionName = versionName;
@@ -70,6 +71,7 @@ public interface ComponentDatabaseInterface {
       this.nonVisible = nonVisible;
       this.iconName = iconName;
       this.isAPI = isAPI;
+      this.APICode = APICode;
       this.licenseName = licenseName;
       this.typeDescription = typeDescription;
     }
@@ -163,6 +165,10 @@ public interface ComponentDatabaseInterface {
 
     public boolean getIsAPI() {
       return isAPI;
+    }
+
+    public String getAPICode() {
+      return APICode;
     }
 
     public String getLicenseName() {
