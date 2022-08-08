@@ -33,16 +33,24 @@ Blockly.Yail.component_event = function() { // want to make a new block type for
                                             // want to log in as administrator, can right click on block and click generate yail
 
   var preamble;
+  var eventName = this.eventName;
+
+  var componentDb = this.workspace.getComponentDatabase();
+  var isAPI = componentDb['types_'][this.typeName]['componentInfo']['isAPI'];
+  if (isAPI) {
+    eventName = "GotResponse";
+  }
+
   if (this.isGeneric) {
     preamble = Blockly.Yail.YAIL_DEFINE_GENERIC_EVENT
       + this.typeName
       + Blockly.Yail.YAIL_SPACER
-      + this.eventName;
+      + eventName;
   } else {
     preamble = Blockly.Yail.YAIL_DEFINE_EVENT
       + this.getFieldValue("COMPONENT_SELECTOR")
       + Blockly.Yail.YAIL_SPACER
-      + this.eventName;
+      + eventName;
   }
 
   var body = Blockly.Yail.statementToCode(this, 'DO');

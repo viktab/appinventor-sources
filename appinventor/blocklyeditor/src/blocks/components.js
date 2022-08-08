@@ -555,9 +555,8 @@ Blockly.Blocks.component_event = {
       if (!componentType) {
         return false; // component does NOT exist! should not happen!
       }
-      var eventDictionary = componentType.eventDictionary;
       /** @type {EventDescriptor} */
-      var event = eventDictionary[this.eventName];
+      var event = componentDb.getEventName(this.typeName, this.eventName);
       // check event name
       if (!event) {
         return false; // no such event : this event was for another version!  block is undefined!

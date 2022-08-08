@@ -33,7 +33,6 @@ import java.util.zip.ZipInputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -60,6 +59,18 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         operationTypes.add("head");
         operationTypes.add("patch");
         operationTypes.add("trace");
+    }
+
+    private static final Map<String, String> operationTypesPassedTense = new HashMap<String, String>();
+    static {
+        operationTypesPassedTense.put("get", "got");
+        operationTypesPassedTense.put("put", "put");
+        operationTypesPassedTense.put("post", "posted");
+        operationTypesPassedTense.put("delete", "deleted");
+        operationTypesPassedTense.put("options", "gotOptions");
+        operationTypesPassedTense.put("head", "putHead");
+        operationTypesPassedTense.put("patch", "patched");
+        operationTypesPassedTense.put("trace", "gotTrace");
     }
 
     @Override
@@ -179,6 +190,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
 
         // in theory every path could be its own component, I can try both options later
         JSONArray methods = new JSONArray();
+        JSONArray events = new JSONArray();
         JSONArray methodsCode = new JSONArray();
         JSONObject pathsObj = apiJSON.getJSONObject("paths");
         Set pathSet = pathsObj.keySet();
@@ -230,17 +242,31 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 }
                 operation.put("params", params);
                 methods.put(operation);
+                JSONObject event = new JSONObject();
+                String operationTypePassedTense = operationTypesPassedTense.get(key);
+                String eventName = operationTypePassedTense + "_" + operationID;
+                event.put("name", eventName);
+                String eventDesc = "Got response from API call. API call description: \n" + description;
+                event.put("description", eventDesc);
+                String deprecated = operation.getString("deprecated");
+                event.put("deprecated", deprecated);
+                JSONArray eventParams = new JSONArray();
+                JSONObject eventParam = new JSONObject();
+                eventParam.put("name", "response");
+                eventParam.put("type", "text");
+                eventParams.put(eventParam);
+                event.put("params", eventParams);
+                events.put(event);
                 methodsCode.put(operationCode);
             }
         }
         componentJSON.put("methods", methods);
+        componentJSON.put("events", events);
 
         JSONArray properties = new JSONArray();
         componentJSON.put("properties", properties);
         JSONArray blockProperties = new JSONArray();
         componentJSON.put("blockProperties", blockProperties);
-        JSONArray events = new JSONArray();
-        componentJSON.put("events", events);
         functionJSON.put("functions", methodsCode);
         String APICodeStr = functionJSON.toString();
         componentJSON.put("APICode", APICodeStr);

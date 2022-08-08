@@ -294,6 +294,13 @@ Blockly.ComponentDatabase.prototype.getType = function(typeName) {
   return isAPI ? this.types_["OpenAPI"] : type;
 };
 
+Blockly.ComponentDatabase.prototype.getEventName = function(typeName, eventName) {
+  var type = this.types_[typeName];
+  var isAPI = type['componentInfo']['isAPI'];
+  return isAPI ? this.types_["OpenAPI"].eventDictionary["GotResponse"] : 
+      this.types_[typeName].eventDictionary[eventName];
+}
+
 /**
  * Get the names of the component instances in the database.
  * @returns {Array.<string>} An array of user-provided names for components.
