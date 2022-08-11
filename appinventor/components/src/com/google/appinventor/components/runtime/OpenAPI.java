@@ -136,6 +136,10 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
 
     final String METHOD = "Get";
     Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
+    List<String> userAgentList = new ArrayList<>();
+    userAgentList.add("AppInventor");
+    requestHeadersMap.put("User-Agent", userAgentList);
+
     try {
       final CapturedProperties webProps = new CapturedProperties(url, 10000, requestHeadersMap);
       AsynchUtil.runAsynchronously(new Runnable() {
