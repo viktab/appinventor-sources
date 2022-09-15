@@ -338,7 +338,6 @@ Blockly.ReplMgr.putYail = (function() {
             context = this;
             rs = top.ReplState;
             if (code === undefined) {      // This is a kludge. It lets us call putYail without args
-                console.log("calling pollphone 1");
                 engine.pollphone();
                 return;                    // in order to setup the context variable above.
             }
@@ -368,7 +367,6 @@ Blockly.ReplMgr.putYail = (function() {
                 'failure' : failure,
                 'block' : block
             });
-            console.log("calling pollphone 2");
             engine.pollphone(); // Trigger callback side
         },
         // putAsset: Like putYail but uses a different queue
@@ -393,7 +391,6 @@ Blockly.ReplMgr.putYail = (function() {
                 'failure' : failure,
                 'block' : block
             });
-            console.log("calling pollphone 3");
             engine.pollphone(); // Trigger callback side
         },
         'webrtcstart' : function() {
@@ -502,7 +499,6 @@ Blockly.ReplMgr.putYail = (function() {
                     console.log("webrtc(onmessage): " + ev.data);
                     var json = goog.json.parse(ev.data);
                     if (json.status == 'OK') {
-                        console.log("process retvals 1");
                         Blockly.ReplMgr.processRetvals(json.values);
                     }
                 };
@@ -581,7 +577,6 @@ Blockly.ReplMgr.putYail = (function() {
             return (chunker);
         })(),
         'pollphone' : function() {
-            console.log("in pollphone")
             // Let's ensure the queues exist
             if (!rs.phoneState.assetQueue) {
                 rs.phoneState.assetQueue = [];
@@ -594,8 +589,6 @@ Blockly.ReplMgr.putYail = (function() {
             }
             var blockid;
             var sendcode;
-            console.log("code?");
-            console.log(sendcode);
             if (!phonereceiving && !top.usewebrtc) {
                 engine.receivefromphone();
             }
@@ -721,7 +714,6 @@ Blockly.ReplMgr.putYail = (function() {
                         if (work.success)
                             work.success();
                     }
-                    console.log("process retvals 2");
                     Blockly.ReplMgr.processRetvals(json.values);
                     rs.seq_count += 1;
                     if (rs.phoneState.initialized) { // Only continue if we are still initialized
@@ -754,21 +746,16 @@ Blockly.ReplMgr.putYail = (function() {
             conn.send(stuff);
         },
         "receivefromphone" : function() {
-            console.log("in receive from phone");
             phonereceiving = true;
-            console.log("receivefromphone called.");
             rxhr = goog.net.XmlHttp();
             rxhr.open('POST', rs.rurl, true); // We post to avoid caching issues
             rxhr.onreadystatechange = function() {
                 if (this.readyState != 4) return;
-                console.log("receivefromphone returned.");
                 if (this.status == 200) {
                     var json = goog.json.parse(this.response);
                     if (json.status == 'OK') {
-                        console.log("process retvals 3");
                         Blockly.ReplMgr.processRetvals(json.values);
                     }
-                    console.log("recurse??");
                     engine.receivefromphone(); // Continue...
                 }
             };

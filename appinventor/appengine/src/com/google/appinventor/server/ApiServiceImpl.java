@@ -257,6 +257,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 eventParams.put(eventParam);
                 event.put("params", eventParams);
                 events.put(event);
+                operationCode.put("params", params);
                 methodsCode.put(operationCode);
             }
         }

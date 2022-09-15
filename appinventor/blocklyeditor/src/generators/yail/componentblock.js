@@ -198,19 +198,41 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
   }
 
   var args = [];
-  for (var x = 0; x < numOfParams; x++) {
-    // TODO(hal, andrew): check for empty socket and generate error if necessary
-    args.push(Blockly.Yail.YAIL_SPACER
-              + Blockly.Yail.valueToCode(methodBlock, 'ARG' + x, Blockly.Yail.ORDER_NONE));
-  }
-
+  var paramList;
   var isAPI = componentDb['types_'][methodBlock.typeName]['componentInfo']['isAPI'];
   if (isAPI) {
-    var apiCode = componentDb['types_'][methodBlock.typeName]['componentInfo']['APICode']
+    var apiCode = componentDb['types_'][methodBlock.typeName]['componentInfo']['APICode'];
     var blockCode = Blockly.Yail.getAPICode(methodName, apiCode);
+    blockCode = " \"" + blockCode + "\"";
+    args.push(blockCode);
     methodName = "invokeAPI";
-    args = " \"" + blockCode + "\"";
-    yailTypes = ["text"];
+    paramList = Blockly.Yail.YAIL_SPACER;
+    paramList += Blockly.Yail.YAIL_CALL_YAIL_PRIMITIVE + "make-yail-list" + Blockly.Yail.YAIL_SPACER;
+    paramList += Blockly.Yail.YAIL_OPEN_COMBINATION + Blockly.Yail.YAIL_LIST_CONSTRUCTOR;
+    var itemsAdded = 0;
+    for (var x = 0; x < numOfParams; x++) {
+      var argument = Blockly.Yail.valueToCode(methodBlock, 'ARG' + x, Blockly.Yail.ORDER_NONE).replaceAll("\\\"", "\"") || null;
+      if(argument != null){
+        paramList += Blockly.Yail.YAIL_SPACER + argument;
+        itemsAdded++;
+      }
+    }
+    paramList += Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_CLOSE_COMBINATION + Blockly.Yail.YAIL_SPACER;
+    paramList += Blockly.Yail.YAIL_QUOTE + Blockly.Yail.YAIL_OPEN_COMBINATION;
+    for(var i=0;i<itemsAdded;i++) {
+      paramList += "any" + Blockly.Yail.YAIL_SPACER;
+    }
+    paramList += Blockly.Yail.YAIL_CLOSE_COMBINATION;
+    paramList += Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_DOUBLE_QUOTE + "make a list" + Blockly.Yail.YAIL_DOUBLE_QUOTE + Blockly.Yail.YAIL_CLOSE_COMBINATION;
+    args.push(paramList);
+    yailTypes = ["text", "list"];
+  }
+  else {
+      for (var x = 0; x < numOfParams; x++) {
+      // TODO(hal, andrew): check for empty socket and generate error if necessary
+      args.push(Blockly.Yail.YAIL_SPACER
+                + Blockly.Yail.valueToCode(methodBlock, 'ARG' + x, Blockly.Yail.ORDER_NONE));
+    }
   }
 
   return callPrefix
@@ -222,7 +244,7 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     + Blockly.Yail.YAIL_SPACER
     + Blockly.Yail.YAIL_OPEN_COMBINATION
     + Blockly.Yail.YAIL_LIST_CONSTRUCTOR
-    + args
+    + args.join(' ')
     + Blockly.Yail.YAIL_CLOSE_COMBINATION
     + Blockly.Yail.YAIL_SPACER
     + Blockly.Yail.YAIL_QUOTE

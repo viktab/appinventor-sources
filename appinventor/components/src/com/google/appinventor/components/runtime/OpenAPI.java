@@ -23,6 +23,7 @@ import com.google.appinventor.components.runtime.errors.RequestTimeoutException;
 import com.google.appinventor.components.runtime.util.AsynchUtil;
 import com.google.appinventor.components.runtime.util.ErrorMessages;
 import com.google.appinventor.components.runtime.util.FileUtil;
+import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailList;
 
 import android.app.Activity;
@@ -50,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.google.appinventor.components.runtime.util.SdkLevel;
@@ -126,13 +128,25 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   private static final String LOG_TAG = "OpenAPI";
 
   @SimpleFunction
-  public void invokeAPI(final String apiStr) {
+  public void invokeAPI(String apiStr, final YailList args) {
     JSONObject apiJson = new JSONObject(apiStr);
+    Log.i(LOG_TAG, "got api info: " + apiJson.toString());
     String serverURL = apiJson.getString("serverUrl");
+    Log.i(LOG_TAG, "got serverURL: " + serverURL);
     JSONObject functionJson = apiJson.getJSONObject("funcInfo");
     String path = functionJson.getString("path");
+    Log.i(LOG_TAG, "got path: " + path);
     String functionName = functionJson.getString("name");
+    Log.i(LOG_TAG, "got functionName: " + functionName);
     String url = serverURL + path;
+    Log.i(LOG_TAG, "got url: " + url);
+    Log.i(LOG_TAG, "got args: " + args.toString());
+
+    handler.post(new Runnable() {
+        public void run() {
+        toastNow(args.toString());
+        }
+    });
 
     final String METHOD = "Get";
     Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
@@ -154,12 +168,6 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     } catch (InvalidRequestHeadersException e) {
       form.dispatchErrorOccurredEvent(this, functionName, e.errorNumber, e.index);
     }
-
-    handler.post(new Runnable() {
-        public void run() {
-        toastNow(apiStr);
-        }
-    });
   }
 
   @SimpleEvent 
