@@ -143,21 +143,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         contents.put("files/component_build_infos.json", build_info);
 
         return contents;
-
-        // assumption: the zip is non-empty
-        // ZipInputStream zip = new ZipInputStream(inputStream);
-        // ZipEntry entry;
-        // while ((entry = zip.getNextEntry()) != null) {
-        //     if (entry.isDirectory())  continue;
-        //     ByteArrayOutputStream contentStream = new ByteArrayOutputStream();
-        //     ByteStreams.copy(zip, contentStream);
-        //     LOG.info("stream:");
-        //     LOG.info(contentStream.toString());
-        //     contents.put(entry.getName(), contentStream.toByteArray());
-        //     }
-        // zip.close();
-
-        // return contents;
     }
 
     // converts the OpenAPI spec into a components.json
@@ -197,8 +182,23 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         Iterator<String> pathItr = pathSet.iterator();
         while (pathItr.hasNext()) {
             String path = pathItr.next();
+            String[] pathParts = path.split("/");
+            JSONArray params = new JSONArray();
+            int j = 0;
+            for (String part : pathParts) {
+                if (j == 0) {
+                    j++;
+                    continue;
+                }
+                if (part.charAt(0) == '{' && part.charAt(part.length()-1) == '}') {
+                    String paramName = part.substring(1, part.length()-1);
+                    JSONObject param = new JSONObject();
+                    param.put("name", paramName);
+                    param.put("type", "text");
+                    params.put(param);
+                }
+            }
             JSONObject pathObj = pathsObj.getJSONObject(path);
-
             Set keySet = pathObj.keySet();
             Iterator<String> keyItr = keySet.iterator();
             while (keyItr.hasNext()) {
@@ -226,7 +226,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 } catch (Exception e) {
                     operation.put("deprecated", "false");
                 }
-                JSONArray params = new JSONArray();
+                JSONArray allParams = new JSONArray(params.toString());
                 try {
                     JSONArray paramsList = operationObj.getJSONArray("parameters");
                     int numParams = paramsList.length();
@@ -236,11 +236,11 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                         JSONObject param = new JSONObject();
                         param.put("name", paramName);
                         param.put("type", "text");
-                        params.put(param);
+                        allParams.put(param);
                     }
                 } catch (JSONException e) {
                 }
-                operation.put("params", params);
+                operation.put("params", allParams);
                 methods.put(operation);
                 JSONObject event = new JSONObject();
                 String operationTypePassedTense = operationTypesPassedTense.get(key);
@@ -257,7 +257,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 eventParams.put(eventParam);
                 event.put("params", eventParams);
                 events.put(event);
-                operationCode.put("params", params);
+                operationCode.put("params", allParams);
                 methodsCode.put(operationCode);
             }
         }
