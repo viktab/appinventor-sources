@@ -171,7 +171,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         functionJSON.put("serverUrl", serverUrl);
         String[] urlParts = serverUrl.split("/");
         subDirectory = "/" + urlParts[2] + "/";
-        LOG.info("subDirectory: " + subDirectory);
 
         // in theory every path could be its own component, I can try both options later
         JSONArray methods = new JSONArray();
@@ -195,6 +194,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                     JSONObject param = new JSONObject();
                     param.put("name", paramName);
                     param.put("type", "text");
+                    param.put("inQuery", "false");
                     params.put(param);
                 }
             }
@@ -236,6 +236,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                         JSONObject param = new JSONObject();
                         param.put("name", paramName);
                         param.put("type", "text");
+                        param.put("inQuery", "true");
                         allParams.put(param);
                     }
                 } catch (JSONException e) {
@@ -275,8 +276,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         componentsJSON.put(componentJSON);
 
         String componentsStr = componentsJSON.toString();
-        LOG.info("component string");
-        LOG.info(componentsStr);
         return componentsStr.getBytes();
     }
 
@@ -289,7 +288,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
     private void importToProject(Map<String, byte[]> contents, long projectId,
       String folderPath, ApiImportResponse response) throws FileImporterException, IOException {
         // TODO convert API to blocks?
-        LOG.info("will import the API here eventually");
         Status status = Status.IMPORTED;
         final String userId = userInfoProvider.getUserId();
         final String basepath = folderPath + apiFolder + subDirectory;

@@ -138,15 +138,21 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     Log.i(LOG_TAG, "got path: " + path);
     String functionName = functionJson.getString("name");
     Log.i(LOG_TAG, "got functionName: " + functionName);
+    JSONArray argsInfo = functionJson.getJSONArray("params");
     String url = serverURL + path;
     Log.i(LOG_TAG, "got url: " + url);
     Log.i(LOG_TAG, "got args: " + args.toString());
 
-    handler.post(new Runnable() {
+    for (int i = 0; i < args.size(); i++) {
+      final String arg = args.getObject(i).toString();
+      final String inQuery = argsInfo.getJSONObject(i).getString("inQuery");
+      Log.i(LOG_TAG, "got arg: " + arg);
+      handler.post(new Runnable() {
         public void run() {
-        toastNow(args.toString());
+          toastNow(arg + ", " + inQuery);
         }
-    });
+     });
+    }
 
     final String METHOD = "Get";
     Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
