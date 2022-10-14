@@ -142,17 +142,25 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     String url = serverURL + path;
     Log.i(LOG_TAG, "got url: " + url);
     Log.i(LOG_TAG, "got args: " + args.toString());
+    final String urlWithParams = getUrl(url, argsInfo, args);
 
-    for (int i = 0; i < args.size(); i++) {
-      final String arg = args.getObject(i).toString();
-      final String inQuery = argsInfo.getJSONObject(i).getString("inQuery");
-      Log.i(LOG_TAG, "got arg: " + arg);
-      handler.post(new Runnable() {
-        public void run() {
-          toastNow(arg + ", " + inQuery);
-        }
-     });
-    }
+    Log.i(LOG_TAG, "got url: " + urlWithParams);
+    handler.post(new Runnable() {
+      public void run() {
+        toastNow(urlWithParams);
+      }
+    });
+
+    // for (int i = 0; i < args.size(); i++) {
+    //   final String arg = args.getObject(i).toString();
+    //   final String inQuery = argsInfo.getJSONObject(i).getString("inQuery");
+    //   Log.i(LOG_TAG, "got arg: " + arg);
+    //   handler.post(new Runnable() {
+    //     public void run() {
+    //       toastNow(arg + ", " + inQuery);
+    //     }
+    //  });
+    // }
 
     final String METHOD = "Get";
     Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
@@ -434,6 +442,20 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   private static String getResponseType(HttpURLConnection connection) {
     String responseType = connection.getContentType();
     return (responseType != null) ? responseType : "";
+  }
+
+  private String getUrl(String url, JSONArray argsInfo, YailList args) {
+    for (int i = 0; i < args.size(); i++) {
+      JSONObject argInfo = argsInfo.getJSONObject(i);
+      String argName = argInfo.getString("name");
+      String inQuery = argInfo.getString("inQuery");
+      String arg = args.getObject(i).toString();
+      if(inQuery.equals("true")) {
+        continue;
+      }
+      url = url.replace("{" + argName + "}", arg);
+    }
+    return url;
   }
 
   // show a toast using a TextView, which allows us to set the
