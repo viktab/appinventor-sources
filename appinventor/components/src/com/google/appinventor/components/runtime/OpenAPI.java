@@ -446,6 +446,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   }
 
   private String getUrl(String url, JSONArray argsInfo, YailList args) {
+    // add path params
     for (int i = 0; i < args.size(); i++) {
       JSONObject argInfo = argsInfo.getJSONObject(i);
       String argName = argInfo.getString("name");
@@ -457,8 +458,31 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       try {
         String encodedArg = URLEncoder.encode(arg, "UTF-8");
         url = url.replace("{" + argName + "}", encodedArg);
+      } catch (UnsupportedEncodingException e) {
+        Log.e(LOG_TAG, "UTF-8 is the default charset for Android but not available???");
       }
-      catch (UnsupportedEncodingException e) {
+    }
+    // add query params
+    int queriesAdded = 0;
+    for (int i = 0; i < args.size(); i++) {
+      JSONObject argInfo = argsInfo.getJSONObject(i);
+      String argName = argInfo.getString("name");
+      String inQuery = argInfo.getString("inQuery");
+      String arg = args.getObject(i).toString();
+      if(inQuery.equals("false")) {
+        continue;
+      }
+      try {
+        String encodedArg = URLEncoder.encode(arg, "UTF-8");
+        String encodedName = URLEncoder.encode(argName, "UTF-8");
+        if (queriesAdded == 0) {
+          url += "?";
+        } else {
+          url += "&";
+        }
+        url += encodedName + "=" + encodedArg;
+        queriesAdded += 1;
+      } catch (UnsupportedEncodingException e) {
         Log.e(LOG_TAG, "UTF-8 is the default charset for Android but not available???");
       }
     }
