@@ -190,12 +190,19 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                     continue;
                 }
                 if (part.charAt(0) == '{' && part.charAt(part.length()-1) == '}') {
-                    String paramName = part.substring(1, part.length()-1);
-                    JSONObject param = new JSONObject();
-                    param.put("name", paramName);
-                    param.put("type", "text");
-                    param.put("inQuery", "false");
-                    params.put(param);
+                    String partRemaining = part;
+                    while(partRemaining.length() > 0) {
+                        int paramStart = partRemaining.indexOf("{");
+                        int paramEnd = partRemaining.indexOf("}");
+                        String currPart = partRemaining.substring(paramStart, paramEnd+1);
+                        partRemaining = partRemaining.substring(paramEnd+1);
+                        String paramName = currPart.substring(1, currPart.length()-1);
+                        JSONObject param = new JSONObject();
+                        param.put("name", paramName);
+                        param.put("type", "text");
+                        param.put("inQuery", "false");
+                        params.put(param);
+                    }
                 }
             }
             JSONObject pathObj = pathsObj.getJSONObject(path);
