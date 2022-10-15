@@ -46,6 +46,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -453,7 +454,13 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       if(inQuery.equals("true")) {
         continue;
       }
-      url = url.replace("{" + argName + "}", arg);
+      try {
+        String encodedArg = URLEncoder.encode(arg, "UTF-8");
+        url = url.replace("{" + argName + "}", encodedArg);
+      }
+      catch (UnsupportedEncodingException e) {
+        Log.e(LOG_TAG, "UTF-8 is the default charset for Android but not available???");
+      }
     }
     return url;
   }
