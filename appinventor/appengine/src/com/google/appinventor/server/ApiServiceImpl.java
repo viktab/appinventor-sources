@@ -177,6 +177,9 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         JSONArray events = new JSONArray();
         JSONArray methodsCode = new JSONArray();
         JSONObject pathsObj = apiJSON.getJSONObject("paths");
+        Map<String, List<JSONObject>> startWordsMap = new HashMap<>();
+        Map<String, List<JSONObject>> startWordsMapSimple = new HashMap<>();
+        JSONObject collapsedMethods = new JSONObject();
         Set pathSet = pathsObj.keySet();
         Iterator<String> pathItr = pathSet.iterator();
         while (pathItr.hasNext()) {
@@ -249,7 +252,10 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 } catch (JSONException e) {
                 }
                 operation.put("params", allParams);
-                methods.put(operation);
+                // only make new block if it's the first with the start word
+                if (!startWordsMap.containsKey(pathParts[1])) {
+                    methods.put(operation);
+                }
                 JSONObject event = new JSONObject();
                 String operationTypePassedTense = operationTypesPassedTense.get(key);
                 String eventName = operationTypePassedTense + "_" + operationID;
@@ -267,8 +273,39 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 events.put(event);
                 operationCode.put("params", allParams);
                 methodsCode.put(operationCode);
+                if (startWordsMap.containsKey(pathParts[1])) {
+                    // add to main function map
+                    List<JSONObject> wordMethods = startWordsMap.get(pathParts[1]);
+                    wordMethods.add(operation);
+                    // add to simplified function map
+                    List<JSONObject> wordMethodsSimple = startWordsMapSimple.get(pathParts[1]);
+                    JSONObject operationSimple = new JSONObject(operation.toString());
+                    wordMethodsSimple.add(operationSimple);
+                } else {
+                     // add to main function map
+                    List<JSONObject> wordMethods = new ArrayList<>();
+                    wordMethods.add(operation);
+                    startWordsMap.put(pathParts[1], wordMethods);
+                    // add to simplified function map
+                    List<JSONObject> wordMethodsSimple = new ArrayList<>();
+                    JSONObject operationSimple = new JSONObject(operation.toString());
+                    wordMethodsSimple.add(operationSimple);
+                    startWordsMapSimple.put(pathParts[1], wordMethodsSimple);
+                }
             }
         }
+        
+
+        for (String startWord : startWordsMap.keySet()) {
+            List<JSONObject> operationsArr = startWordsMap.get(startWord);
+            for (JSONObject operation : operationsArr) {
+                operation.put("collapse", "true");
+                operation.put("startWord", startWord);
+                List<JSONObject> operationsArrSimple = startWordsMapSimple.get(startWord);
+                operation.put("allMethods", operationsArrSimple);
+            }
+        }
+
         componentJSON.put("methods", methods);
         componentJSON.put("events", events);
 

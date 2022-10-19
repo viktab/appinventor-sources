@@ -685,10 +685,24 @@ Blockly.Blocks.component_method = {
     /** @type {MethodDescriptor} */
     var methodTypeObject = this.getMethodTypeObject();
     var localizedMethodName;
+    var collapse;
+    var startWord;
+    var wordArrs;
     if (methodTypeObject) {
       localizedMethodName = componentDb.getInternationalizedMethodName(methodTypeObject.name);
+      collapse = methodTypeObject.collapse;
+      startWord = methodTypeObject.startWord;
+      var allMethods = methodTypeObject.allMethods;
+      var wordArrs = [];
+      for (var i = 0; i < allMethods.length; i++) {
+        var word = allMethods[i].name;
+        wordArrs.push([word, word]);
+      }
     } else {
       localizedMethodName = this.methodName;
+      collapse = "false";
+      startWord = "None";
+      allMethods = [["None", "None"]];
     }
     if(!this.isGeneric) {
       if (this.typeName == "Clock" && Blockly.ComponentBlock.isClockMethodName(this.methodName)) {
@@ -724,6 +738,12 @@ Blockly.Blocks.component_method = {
             this.setFieldValue('Duration', "TIME_UNIT");
             break;
         }
+      } else if (collapse == "true") {
+        this.appendDummyInput()
+          .appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_METHOD_TITLE_CALL)
+          .appendField(this.componentDropDown, Blockly.ComponentBlock.COMPONENT_SELECTOR)
+          .appendField('.' + startWord)
+          .appendField(new Blockly.FieldDropdown(wordArrs), 'METHOD');
       } else {
         this.appendDummyInput()
           .appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_METHOD_TITLE_CALL)
