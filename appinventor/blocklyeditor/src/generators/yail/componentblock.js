@@ -201,6 +201,7 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
   var paramList;
   var isAPI = componentDb['types_'][methodBlock.typeName]['componentInfo']['isAPI'];
   if (isAPI) {
+    methodName = methodBlock.getFieldValue('METHOD');
     var apiCode = componentDb['types_'][methodBlock.typeName]['componentInfo']['APICode'];
     var blockCode = Blockly.Yail.getAPICode(methodName, apiCode);
     blockCode = " \"" + blockCode + "\"";
