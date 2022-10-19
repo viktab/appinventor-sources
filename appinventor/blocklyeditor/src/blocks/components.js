@@ -1023,6 +1023,45 @@ Blockly.Blocks.component_method = {
   customContextMenu: function(options) {
     Blockly.ComponentBlock.addGenericOption(this, options);
     Blockly.Block.prototype.customContextMenu.call(this, options);
+  },
+
+  onchange: function(event) {
+    console.log("onchange");
+    console.log(event);
+    var methodTypeObject = this.getMethodTypeObject();
+    var componentDb = this.getTopWorkspace().getComponentDatabase();
+    if (!methodTypeObject) {
+      return;
+    }
+    if (methodTypeObject.collapse != "true") {
+      return;
+    }
+    if (event.name != "METHOD") {
+      return;
+    }
+    var allMethods = methodTypeObject.allMethods;
+    var oldMethod = allMethods.find(function(method) {
+      return method.name == event.oldValue;
+    });
+    console.log(methodTypeObject);
+    var oldParams = oldMethod.params;
+    for (var i = 0, param; param = oldParams[i]; i++) {
+      this.removeInput("ARG" + i);
+    }
+
+    var newMethod = allMethods.find(function(method) {
+      return method.name == event.newValue;
+    });
+    var newParams = newMethod.params;
+    for (var i = 0, param; param = newParams[i]; i++) {
+      var name = componentDb.getInternationalizedParameterName(param.name);
+      var check = this.getParamBlocklyType(param);
+
+      this.appendValueInput("ARG" + i)
+          .appendField(name)
+          .setAlign(Blockly.ALIGN_RIGHT)
+          .setCheck(check);
+    }
   }
 
 };
