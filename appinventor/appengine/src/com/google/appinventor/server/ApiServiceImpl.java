@@ -177,9 +177,12 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         JSONArray events = new JSONArray();
         JSONArray methodsCode = new JSONArray();
         JSONObject pathsObj = apiJSON.getJSONObject("paths");
-        Map<String, List<JSONObject>> startWordsMap = new HashMap<>();
-        Map<String, List<JSONObject>> startWordsMapSimple = new HashMap<>();
+        Map<String, List<JSONObject>> methodsMap = new HashMap<>();
+        Map<String, List<JSONObject>> methodsMapSimple = new HashMap<>();
+        Map<String, List<JSONObject>> eventsMap = new HashMap<>();
+        Map<String, List<JSONObject>> eventsMapSimple = new HashMap<>();
         JSONObject collapsedMethods = new JSONObject();
+        JSONObject collapsedEvents = new JSONObject();
         Set pathSet = pathsObj.keySet();
         Iterator<String> pathItr = pathSet.iterator();
         while (pathItr.hasNext()) {
@@ -253,7 +256,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 }
                 operation.put("params", allParams);
                 // only make new block if it's the first with the start word
-                if (!startWordsMap.containsKey(pathParts[1])) {
+                if (!methodsMap.containsKey(pathParts[1])) {
                     methods.put(operation);
                 }
                 JSONObject event = new JSONObject();
@@ -270,39 +273,60 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 eventParam.put("type", "text");
                 eventParams.put(eventParam);
                 event.put("params", eventParams);
-                events.put(event);
+                if (!eventsMap.containsKey(pathParts[1])) {
+                    events.put(event);
+                }
                 operationCode.put("params", allParams);
                 methodsCode.put(operationCode);
-                if (startWordsMap.containsKey(pathParts[1])) {
+                if (methodsMap.containsKey(pathParts[1])) {
                     // add to main function map
-                    List<JSONObject> wordMethods = startWordsMap.get(pathParts[1]);
+                    List<JSONObject> wordMethods = methodsMap.get(pathParts[1]);
                     wordMethods.add(operation);
+                    List<JSONObject> wordEvents = eventsMap.get(pathParts[1]);
+                    wordEvents.add(event);
                     // add to simplified function map
-                    List<JSONObject> wordMethodsSimple = startWordsMapSimple.get(pathParts[1]);
+                    List<JSONObject> wordMethodsSimple = methodsMapSimple.get(pathParts[1]);
                     JSONObject operationSimple = new JSONObject(operation.toString());
                     wordMethodsSimple.add(operationSimple);
+                    List<JSONObject> wordEventsSimple = eventsMapSimple.get(pathParts[1]);
+                    JSONObject eventSimple = new JSONObject(event.toString());
+                    wordEventsSimple.add(eventSimple);
                 } else {
                      // add to main function map
                     List<JSONObject> wordMethods = new ArrayList<>();
                     wordMethods.add(operation);
-                    startWordsMap.put(pathParts[1], wordMethods);
+                    methodsMap.put(pathParts[1], wordMethods);
+                    List<JSONObject> wordEvents = new ArrayList<>();
+                    wordEvents.add(event);
+                    eventsMap.put(pathParts[1], wordEvents);
                     // add to simplified function map
                     List<JSONObject> wordMethodsSimple = new ArrayList<>();
                     JSONObject operationSimple = new JSONObject(operation.toString());
                     wordMethodsSimple.add(operationSimple);
-                    startWordsMapSimple.put(pathParts[1], wordMethodsSimple);
+                    methodsMapSimple.put(pathParts[1], wordMethodsSimple);
+                    List<JSONObject> wordEventsSimple = new ArrayList<>();
+                    JSONObject eventSimple = new JSONObject(event.toString());
+                    wordEventsSimple.add(eventSimple);
+                    eventsMapSimple.put(pathParts[1], wordEventsSimple);
                 }
             }
         }
         
 
-        for (String startWord : startWordsMap.keySet()) {
-            List<JSONObject> operationsArr = startWordsMap.get(startWord);
+        for (String startWord : methodsMap.keySet()) {
+            List<JSONObject> operationsArr = methodsMap.get(startWord);
             for (JSONObject operation : operationsArr) {
                 operation.put("collapse", "true");
                 operation.put("startWord", startWord);
-                List<JSONObject> operationsArrSimple = startWordsMapSimple.get(startWord);
+                List<JSONObject> operationsArrSimple = methodsMapSimple.get(startWord);
                 operation.put("allMethods", operationsArrSimple);
+            }
+            List<JSONObject> eventsArr = eventsMap.get(startWord);
+            for (JSONObject event : eventsArr) {
+                event.put("collapse", "true");
+                event.put("startWord", startWord);
+                List<JSONObject> eventsArrSimple = eventsMapSimple.get(startWord);
+                event.put("allEvents", eventsArrSimple);
             }
         }
 

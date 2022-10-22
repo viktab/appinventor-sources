@@ -275,19 +275,42 @@ Blockly.Blocks.component_event = {
     this.setColour(Blockly.ComponentBlock.COLOUR_EVENT);
 
     var localizedEventName;
+    var collapse; 
+    var startWord;
+    var wordArrs;
     var eventType = this.getEventTypeObject();
     var componentDb = this.getTopWorkspace().getComponentDatabase();
     if (eventType) {
       localizedEventName = componentDb.getInternationalizedEventName(eventType.name);
+      collapse = eventType.collapse;
+      startWord = eventType.startWord;
+      var allEvents = eventType.allEvents;
+      var wordArrs = [];
+      if (allEvents) {
+        for (var i = 0; i < allEvents.length; i++) {
+          var word = allEvents[i].name;
+          wordArrs.push([word, word]);
+        }
+      }
     }
     else {
       localizedEventName = componentDb.getInternationalizedEventName(this.eventName);
+      collapse = "false";
+      startWord = "None";
+      allEvents = [["None", "None"]];
     }
 
     if (!this.isGeneric) {
-      this.appendDummyInput('WHENTITLE').appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_TITLE_WHEN)
+      if (collapse == "true") {
+        this.appendDummyInput('WHENTITLE').appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_TITLE_WHEN)
+          .appendField(this.componentDropDown, Blockly.ComponentBlock.COMPONENT_SELECTOR)
+          .appendField('.' + startWord)
+          .appendField(new Blockly.FieldDropdown(wordArrs), 'EVENT');
+      } else {
+        this.appendDummyInput('WHENTITLE').appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_TITLE_WHEN)
         .appendField(this.componentDropDown, Blockly.ComponentBlock.COMPONENT_SELECTOR)
         .appendField('.' + localizedEventName);
+      }
       this.componentDropDown.setValue(this.instanceName);
     } else {
       this.appendDummyInput('WHENTITLE').appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_GENERIC_EVENT_TITLE
@@ -694,9 +717,11 @@ Blockly.Blocks.component_method = {
       startWord = methodTypeObject.startWord;
       var allMethods = methodTypeObject.allMethods;
       var wordArrs = [];
-      for (var i = 0; i < allMethods.length; i++) {
-        var word = allMethods[i].name;
-        wordArrs.push([word, word]);
+      if (allMethods) {
+        for (var i = 0; i < allMethods.length; i++) {
+          var word = allMethods[i].name;
+          wordArrs.push([word, word]);
+        }
       }
     } else {
       localizedMethodName = this.methodName;
