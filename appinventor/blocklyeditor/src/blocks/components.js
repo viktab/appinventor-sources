@@ -1080,8 +1080,9 @@ Blockly.Blocks.component_method = {
     var newParamsNames = newParams.map(function(param) {
       return param.name;
     });
-    if (currArgs.every(function(val, index){
-      return val === newParamsNames[index];
+    if (currArgs.length == newParamsNames.length && 
+        currArgs.every(function(val, index){
+          return val === newParamsNames[index];
     }))  {
       return;
     }
