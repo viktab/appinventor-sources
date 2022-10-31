@@ -1051,9 +1051,12 @@ Blockly.Blocks.component_method = {
   },
 
   onchange: function(event) {
-    console.log("onchange");
-    console.log(event);
-    var methodTypeObject = this.getMethodTypeObject();
+    var block = this.getTopWorkspace().getBlockById(event.blockId);
+    if (!block) {
+      return;
+    }
+    var methodTypeObject = this.getTopWorkspace().getComponentDatabase()
+        .getMethodForType(block.typeName, block.methodName);
     var componentDb = this.getTopWorkspace().getComponentDatabase();
     if (!methodTypeObject) {
       return;
@@ -1068,21 +1071,31 @@ Blockly.Blocks.component_method = {
     var oldMethod = allMethods.find(function(method) {
       return method.name == event.oldValue;
     });
-    console.log(methodTypeObject);
     var oldParams = oldMethod.params;
-    for (var i = 0, param; param = oldParams[i]; i++) {
-      this.removeInput("ARG" + i);
-    }
-
+    var currArgs = block.getArgs();
     var newMethod = allMethods.find(function(method) {
       return method.name == event.newValue;
     });
     var newParams = newMethod.params;
+    var newParamsNames = newParams.map(function(param) {
+      return param.name;
+    });
+    if (currArgs.every(function(val, index){
+      return val === newParamsNames[index];
+    }))  {
+      return;
+    }
+
+    for (var i = 0; i < oldParams.length; i++) {
+      var param = oldParams[i];
+      block.removeInput("ARG" + i);
+    }
+
     for (var i = 0, param; param = newParams[i]; i++) {
       var name = componentDb.getInternationalizedParameterName(param.name);
-      var check = this.getParamBlocklyType(param);
+      var check = block.getParamBlocklyType(param);
 
-      this.appendValueInput("ARG" + i)
+      block.appendValueInput("ARG" + i)
           .appendField(name)
           .setAlign(Blockly.ALIGN_RIGHT)
           .setCheck(check);
