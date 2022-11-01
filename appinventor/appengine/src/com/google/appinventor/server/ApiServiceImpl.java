@@ -270,7 +270,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 JSONArray eventParams = new JSONArray();
                 JSONObject eventParam = new JSONObject();
                 eventParam.put("name", "response");
-                eventParam.put("type", "text");
+                eventParam.put("type", "dictionary");
                 eventParams.put(eventParam);
                 event.put("params", eventParams);
                 if (!eventsMap.containsKey(pathParts[1])) {

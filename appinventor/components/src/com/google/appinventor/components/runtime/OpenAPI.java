@@ -25,6 +25,7 @@ import com.google.appinventor.components.runtime.util.ErrorMessages;
 import com.google.appinventor.components.runtime.util.FileUtil;
 import com.google.appinventor.components.runtime.util.JsonUtil;
 import com.google.appinventor.components.runtime.util.YailList;
+import com.google.appinventor.components.runtime.util.YailDictionary;
 
 import android.app.Activity;
 import android.graphics.Typeface;
@@ -51,9 +52,12 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONException;
 
 import com.google.appinventor.components.runtime.util.SdkLevel;
 
@@ -186,7 +190,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   }
 
   @SimpleEvent 
-  public void GotResponse(String response) {
+  public void GotResponse(YailDictionary response) {
     EventDispatcher.dispatchEvent(this, "GotResponse", response);
   }
 
@@ -242,7 +246,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
           activity.runOnUiThread(new Runnable() {
               @Override
               public void run() {
-                GotResponse(responseContent);
+                // Change response to dictionary
+                YailDictionary responseDict = toYailDict(responseContent);
+                GotResponse(responseDict);
               }
             });
 
@@ -295,6 +301,44 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       form.dispatchErrorOccurredEvent(OpenAPI.this, method,
           message, (Object[]) args);
     }
+  }
+
+  public static Map<Object, Object> toMap(JSONObject jsonobj)  throws JSONException {
+    Map<Object, Object> map = new HashMap<Object, Object>();
+    Iterator<Object> keys = jsonobj.keys();
+    while(keys.hasNext()) {
+      String key = keys.next().toString();
+      Object value = jsonobj.get(key);
+      if (value instanceof JSONArray) {
+        value = toList((JSONArray) value);
+      } else if (value instanceof JSONObject) {
+        value = toMap((JSONObject) value);
+      }
+      Object keyObj = key;
+      map.put(keyObj, value);
+    }
+    return map;
+  }
+
+  public static List<Object> toList(JSONArray array) throws JSONException {
+    List<Object> list = new ArrayList<Object>();
+    for(int i = 0; i < array.length(); i++) {
+      Object value = array.get(i);
+      if (value instanceof JSONArray) {
+        value = toList((JSONArray) value);
+      } else if (value instanceof JSONObject) {
+        value = toMap((JSONObject) value);
+      }
+      list.add(value);
+    }
+    return list;
+  }
+
+  private static YailDictionary toYailDict(String mapStr)  throws JSONException {
+    JSONObject jsonobj = new JSONObject(mapStr);
+    Map<Object, Object> map = toMap(jsonobj);
+    YailDictionary yaildict = new YailDictionary(map);
+    return yaildict;
   }
 
   /**
