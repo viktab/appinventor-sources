@@ -174,7 +174,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     requestHeadersMap.put("User-Agent", userAgentList);
 
     try {
-      final CapturedProperties webProps = new CapturedProperties(url, 10000, requestHeadersMap);
+      final CapturedProperties webProps = new CapturedProperties(urlWithParams, 10000, requestHeadersMap);
       AsynchUtil.runAsynchronously(new Runnable() {
         @Override
         public void run() {
@@ -183,7 +183,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       });
     } catch (MalformedURLException e) {
       form.dispatchErrorOccurredEvent(this, functionName,
-          ErrorMessages.ERROR_WEB_MALFORMED_URL, url);
+          ErrorMessages.ERROR_WEB_MALFORMED_URL, urlWithParams);
     } catch (InvalidRequestHeadersException e) {
       form.dispatchErrorOccurredEvent(this, functionName, e.errorNumber, e.index);
     }
@@ -500,7 +500,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
         continue;
       }
       try {
-        String encodedArg = URLEncoder.encode(arg, "UTF-8");
+        String encodedArg = URLEncoder.encode(arg, "UTF-8").replaceAll("%2C",",");
         url = url.replace("{" + argName + "}", encodedArg);
       } catch (UnsupportedEncodingException e) {
         Log.e(LOG_TAG, "UTF-8 is the default charset for Android but not available???");
