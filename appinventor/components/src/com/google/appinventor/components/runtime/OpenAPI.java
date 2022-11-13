@@ -74,6 +74,18 @@ import com.google.appinventor.components.runtime.util.SdkLevel;
 @SimpleObject
 public final class OpenAPI extends AndroidNonvisibleComponent implements Component {
 
+    private static final Map<String, String> operationTypesPassedTense = new HashMap<String, String>();
+    static {
+        operationTypesPassedTense.put("get", "got");
+        operationTypesPassedTense.put("put", "put");
+        operationTypesPassedTense.put("post", "posted");
+        operationTypesPassedTense.put("delete", "deleted");
+        operationTypesPassedTense.put("options", "gotOptions");
+        operationTypesPassedTense.put("head", "putHead");
+        operationTypesPassedTense.put("patch", "patched");
+        operationTypesPassedTense.put("trace", "gotTrace");
+    }
+
   /**
    * InvalidRequestHeadersException can be thrown from processRequestHeaders.
    * It is thrown if the list passed to processRequestHeaders contains an item that is not a list.
@@ -156,29 +168,24 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       }
     });
 
-    // for (int i = 0; i < args.size(); i++) {
-    //   final String arg = args.getObject(i).toString();
-    //   final String inQuery = argsInfo.getJSONObject(i).getString("inQuery");
-    //   Log.i(LOG_TAG, "got arg: " + arg);
-    //   handler.post(new Runnable() {
-    //     public void run() {
-    //       toastNow(arg + ", " + inQuery);
-    //     }
-    //  });
-    // }
-
     final String METHOD = "Get";
     Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
     List<String> userAgentList = new ArrayList<>();
     userAgentList.add("AppInventor");
     requestHeadersMap.put("User-Agent", userAgentList);
 
+    String[] functionNameParts = functionName.split("_");
+    String restWord = functionNameParts[0];
+    String pastTense = operationTypesPassedTense.get(restWord);
+    functionNameParts[0] = pastTense;
+    final String callbackMethod = join("_", functionNameParts);
+
     try {
       final CapturedProperties webProps = new CapturedProperties(urlWithParams, 10000, requestHeadersMap);
       AsynchUtil.runAsynchronously(new Runnable() {
         @Override
         public void run() {
-          performRequest(webProps, null, "GET", METHOD);
+          performRequest(webProps, null, "GET", METHOD, callbackMethod);
         }
       });
     } catch (MalformedURLException e) {
@@ -191,7 +198,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
 
   @SimpleEvent 
   public void GotResponse(YailDictionary response) {
-    EventDispatcher.dispatchEvent(this, "GotResponse", response);
+    String callbackMethod = response.get("method").toString();
+    response = (YailDictionary) response.get("response");
+    EventDispatcher.dispatchEvent(this, callbackMethod, response);
   }
 
   /**
@@ -224,7 +233,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
    * @throws IOException
    */
   private void performRequest(final CapturedProperties webProps, final byte[] postData,
-      final String httpVerb, final String method) {
+      final String httpVerb, final String method, final String callbackMethod) {
 
     try {
       // Open the connection.
@@ -248,7 +257,10 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
               public void run() {
                 // Change response to dictionary
                 YailDictionary responseDict = toYailDict(responseContent);
-                GotResponse(responseDict);
+                YailDictionary infoDict = new YailDictionary();
+                infoDict.put("response", responseDict);
+                infoDict.put("method", callbackMethod);
+                GotResponse(infoDict);
               }
             });
 
@@ -332,6 +344,20 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       list.add(value);
     }
     return list;
+  }
+
+  private static String join(String separator, String[] list) {
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (String item : list) {
+      if (first) {
+        first = false;
+      } else {
+        sb.append(separator);
+      }
+      sb.append(item.toString());
+    }
+    return sb.toString();
   }
 
   private static YailDictionary toYailDict(String mapStr)  throws JSONException {

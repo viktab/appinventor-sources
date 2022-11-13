@@ -38,7 +38,7 @@ Blockly.Yail.component_event = function() { // want to make a new block type for
   var componentDb = this.workspace.getComponentDatabase();
   var isAPI = componentDb['types_'][this.typeName]['componentInfo']['isAPI'];
   if (isAPI) {
-    eventName = "GotResponse";
+    eventName = this.getFieldValue('EVENT');
   }
 
   if (this.isGeneric) {
