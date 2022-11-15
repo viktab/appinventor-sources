@@ -315,37 +315,6 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     }
   }
 
-  public static Map<Object, Object> toMap(JSONObject jsonobj)  throws JSONException {
-    Map<Object, Object> map = new HashMap<Object, Object>();
-    Iterator<Object> keys = jsonobj.keys();
-    while(keys.hasNext()) {
-      String key = keys.next().toString();
-      Object value = jsonobj.get(key);
-      if (value instanceof JSONArray) {
-        value = toList((JSONArray) value);
-      } else if (value instanceof JSONObject) {
-        value = toMap((JSONObject) value);
-      }
-      Object keyObj = key;
-      map.put(keyObj, value);
-    }
-    return map;
-  }
-
-  public static List<Object> toList(JSONArray array) throws JSONException {
-    List<Object> list = new ArrayList<Object>();
-    for(int i = 0; i < array.length(); i++) {
-      Object value = array.get(i);
-      if (value instanceof JSONArray) {
-        value = toList((JSONArray) value);
-      } else if (value instanceof JSONObject) {
-        value = toMap((JSONObject) value);
-      }
-      list.add(value);
-    }
-    return list;
-  }
-
   private static String join(String separator, String[] list) {
     StringBuilder sb = new StringBuilder();
     boolean first = true;
@@ -361,10 +330,8 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   }
 
   private static YailDictionary toYailDict(String mapStr)  throws JSONException {
-    JSONObject jsonobj = new JSONObject(mapStr);
-    Map<Object, Object> map = toMap(jsonobj);
-    YailDictionary yaildict = new YailDictionary(map);
-    return yaildict;
+    Object parsedResponse = JsonUtil.getObjectFromJson(mapStr, true);
+    return (YailDictionary) parsedResponse;
   }
 
   /**
