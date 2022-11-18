@@ -165,6 +165,14 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         String name = infoObj.getString("title");
         componentJSON.put("name", name);
 
+        JSONArray properties = new JSONArray();
+        JSONObject headerProp = new JSONObject();
+        headerProp.put("name", "Request header");
+        headerProp.put("editorType", "textArea");
+        headerProp.put("defaultValue", "");
+        headerProp.put("editorArgs", new JSONArray());
+        properties.put(headerProp);
+
         JSONArray servers = apiJSON.getJSONArray("servers");
         JSONObject serverObj = servers.getJSONObject(0);
         String serverUrl = serverObj.getString("url");
@@ -230,7 +238,12 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 String operationName = key + "_" + operationID;
                 operation.put("name", operationName);
                 operationCode.put("name", operationName);
-                String description = operationObj.getString("description");
+                String description;
+                try {
+                    description = operationObj.getString("description");
+                } catch (Exception e) {
+                    description = "No description given";
+                }
                 operation.put("description", description);
                 // TODO add more info to the description
                 try {
@@ -333,7 +346,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         componentJSON.put("methods", methods);
         componentJSON.put("events", events);
 
-        JSONArray properties = new JSONArray();
         componentJSON.put("properties", properties);
         JSONArray blockProperties = new JSONArray();
         componentJSON.put("blockProperties", blockProperties);
