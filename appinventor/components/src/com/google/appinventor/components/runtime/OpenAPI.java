@@ -7,10 +7,14 @@
 package com.google.appinventor.components.runtime;
 
 import com.google.appinventor.components.annotations.DesignerComponent;
+import com.google.appinventor.components.annotations.DesignerProperty;
+import com.google.appinventor.components.annotations.PropertyCategory;
 import com.google.appinventor.components.annotations.SimpleEvent;
 import com.google.appinventor.components.annotations.SimpleFunction;
 import com.google.appinventor.components.annotations.SimpleObject;
+import com.google.appinventor.components.annotations.SimpleProperty;
 import com.google.appinventor.components.common.ComponentCategory;
+import com.google.appinventor.components.common.PropertyTypeConstants;
 import com.google.appinventor.components.common.YaVersion;
 
 import com.google.appinventor.components.runtime.collect.Lists;
@@ -53,6 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Iterator;
 
 import org.json.JSONArray;
@@ -111,6 +116,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     private int notifierLength = Component.TOAST_LENGTH_LONG;
     private final Activity activity;
     private final Handler handler;
+    private String requestHeader;
 
   /**
    * Creates a new OpenAPI component.
@@ -144,6 +150,29 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
 
   private static final String LOG_TAG = "OpenAPI";
 
+  /**
+   * Returns the header to use for all API requests
+   *
+   * @return  request header
+   */
+  @SimpleProperty(
+      category = PropertyCategory.APPEARANCE)
+  public String RequestHeader() {
+    return requestHeader;
+  }
+
+  /**
+   * Specifies the header to use for all API requests
+   *
+   * @param text  new header for requests
+   */
+  @DesignerProperty(editorType = PropertyTypeConstants.PROPERTY_TYPE_TEXTAREA,
+      defaultValue = "")
+  @SimpleProperty
+  public void RequestHeader(String text) {
+    requestHeader = text;
+  }
+
   @SimpleFunction
   public void invokeAPI(String apiStr, final YailList args) {
     JSONObject apiJson = new JSONObject(apiStr);
@@ -169,10 +198,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     });
 
     final String METHOD = "Get";
-    Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
-    List<String> userAgentList = new ArrayList<>();
-    userAgentList.add("AppInventor");
-    requestHeadersMap.put("User-Agent", userAgentList);
+    Map<String, List<String>> requestHeadersMap = parseRequestHeaders(requestHeader);
 
     String[] functionNameParts = functionName.split("_");
     String restWord = functionNameParts[0];
@@ -333,6 +359,30 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     Object parsedResponse = JsonUtil.getObjectFromJson(mapStr, true);
     return (YailDictionary) parsedResponse;
   }
+
+  private Map<String, List<String>> parseRequestHeaders(String requestHeadersStr) {
+    Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
+    JSONObject requestHeadersJSON = new JSONObject(requestHeadersStr);
+    Set keySet = requestHeadersJSON.keySet();
+    Iterator<String> keyItr = keySet.iterator();
+    boolean hasUserAgent = false;
+    while (keyItr.hasNext()) {
+      String key = keyItr.next();
+      if (key.equals("User-Agent")) {
+        hasUserAgent = true;
+      }
+      String value = requestHeadersJSON.getString(key);
+      List<String> valueList = new ArrayList<>();
+      valueList.add(value);
+      requestHeadersMap.put(key, valueList);
+    }
+    if (!hasUserAgent) {
+      List<String> userAgentList = new ArrayList<>();
+      userAgentList.add("AppInventor");
+      requestHeadersMap.put("User-Agent", userAgentList);
+    }
+    return requestHeadersMap;
+  } 
 
   /**
    * Open a connection to the resource and set the HTTP action to PUT or DELETE if it is one of

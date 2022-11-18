@@ -167,11 +167,20 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
 
         JSONArray properties = new JSONArray();
         JSONObject headerProp = new JSONObject();
-        headerProp.put("name", "Request header");
+        headerProp.put("name", "RequestHeader");
         headerProp.put("editorType", "textArea");
         headerProp.put("defaultValue", "");
         headerProp.put("editorArgs", new JSONArray());
         properties.put(headerProp);
+
+        JSONArray blockProperties = new JSONArray();
+        JSONObject blockHeaderProp = new JSONObject();
+        blockHeaderProp.put("name", "RequestHeader");
+        blockHeaderProp.put("description", "Header object to use in all your API requests. Follow a JSON format, such as: {\"key1\": \"value1\", \"key2\": \"value2\"}");
+        blockHeaderProp.put("type", "text");
+        blockHeaderProp.put("rw", "read-write");
+        blockHeaderProp.put("deprecated", "false");
+        blockProperties.put(blockHeaderProp);
 
         JSONArray servers = apiJSON.getJSONArray("servers");
         JSONObject serverObj = servers.getJSONObject(0);
@@ -347,7 +356,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         componentJSON.put("events", events);
 
         componentJSON.put("properties", properties);
-        JSONArray blockProperties = new JSONArray();
         componentJSON.put("blockProperties", blockProperties);
         functionJSON.put("functions", methodsCode);
         String APICodeStr = functionJSON.toString();
