@@ -125,15 +125,16 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         StringBuilder sb = new StringBuilder();
         for (int ch; (ch = inputStream.read()) != -1; ) {
             sb.append((char) ch);
-        } if (fileType.equals("JSON")) {
-            String jsonStr = sb.toString();
-            JSONObject json = new JSONObject(jsonStr);
+        }
+        String inputStr = sb.toString();
+        String parsedStr = inputStr.replaceAll("[^\\x00-\\x7f]+", "");
+        if (fileType.equals("JSON")) {
+            JSONObject json = new JSONObject(parsedStr);
             byte[] components = defineJSONBlocks(json);
             contents.put("components.json", components);
         } else {
-            String yamlStr = sb.toString();
             Yaml yaml = new Yaml();
-            Map<String, Object> obj = yaml.load(yamlStr);
+            Map<String, Object> obj = yaml.load(parsedStr);
             byte[] components = defineYAMLBlocks(obj);
             contents.put("components.json", components);
         }

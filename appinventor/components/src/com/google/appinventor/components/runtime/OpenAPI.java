@@ -176,21 +176,14 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
   @SimpleFunction
   public void invokeAPI(String apiStr, final YailList args) {
     JSONObject apiJson = new JSONObject(apiStr);
-    Log.i(LOG_TAG, "got api info: " + apiJson.toString());
     String serverURL = apiJson.getString("serverUrl");
-    Log.i(LOG_TAG, "got serverURL: " + serverURL);
     JSONObject functionJson = apiJson.getJSONObject("funcInfo");
     String path = functionJson.getString("path");
-    Log.i(LOG_TAG, "got path: " + path);
     String functionName = functionJson.getString("name");
-    Log.i(LOG_TAG, "got functionName: " + functionName);
     JSONArray argsInfo = functionJson.getJSONArray("params");
     String url = serverURL + path;
-    Log.i(LOG_TAG, "got url: " + url);
-    Log.i(LOG_TAG, "got args: " + args.toString());
     final String urlWithParams = getUrl(url, argsInfo, args);
 
-    Log.i(LOG_TAG, "got url: " + urlWithParams);
     handler.post(new Runnable() {
       public void run() {
         toastNow(urlWithParams);
