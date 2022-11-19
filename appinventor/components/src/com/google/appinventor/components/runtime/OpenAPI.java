@@ -175,6 +175,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
 
   @SimpleFunction
   public void invokeAPI(String apiStr, final YailList args) {
+    Log.i(LOG_TAG, "hi starting");
     JSONObject apiJson = new JSONObject(apiStr);
     String serverURL = apiJson.getString("serverUrl");
     JSONObject functionJson = apiJson.getJSONObject("funcInfo");
@@ -204,6 +205,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       AsynchUtil.runAsynchronously(new Runnable() {
         @Override
         public void run() {
+          Log.i(LOG_TAG, "calling perform request");
           performRequest(webProps, null, "GET", METHOD, callbackMethod);
         }
       });
@@ -257,9 +259,11 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     try {
       // Open the connection.
       HttpURLConnection connection = openConnection(webProps, httpVerb);
+      Log.i(LOG_TAG, "making connection");
       if (connection != null) {
         try {
           if (postData != null) {
+            Log.i(LOG_TAG, "calling writeRequestData");
             writeRequestData(connection, postData);
           }
 
@@ -355,19 +359,24 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
 
   private Map<String, List<String>> parseRequestHeaders(String requestHeadersStr) {
     Map<String, List<String>> requestHeadersMap = Maps.newHashMap();
-    JSONObject requestHeadersJSON = new JSONObject(requestHeadersStr);
-    Set keySet = requestHeadersJSON.keySet();
-    Iterator<String> keyItr = keySet.iterator();
     boolean hasUserAgent = false;
-    while (keyItr.hasNext()) {
-      String key = keyItr.next();
-      if (key.equals("User-Agent")) {
-        hasUserAgent = true;
+    try {
+      JSONObject requestHeadersJSON = new JSONObject(requestHeadersStr);
+      Set keySet = requestHeadersJSON.keySet();
+      Iterator<String> keyItr = keySet.iterator();
+      while (keyItr.hasNext()) {
+        String key = keyItr.next();
+        if (key.equals("User-Agent")) {
+          hasUserAgent = true;
+        }
+        String value = requestHeadersJSON.getString(key);
+        List<String> valueList = new ArrayList<>();
+        valueList.add(value);
+        requestHeadersMap.put(key, valueList);
       }
-      String value = requestHeadersJSON.getString(key);
-      List<String> valueList = new ArrayList<>();
-      valueList.add(value);
-      requestHeadersMap.put(key, valueList);
+    } catch (Exception e) {
+      // TODO: if requestHeader not an empty string, tell user it's an invalid json
+      Log.i(LOG_TAG, "invalid request header");
     }
     if (!hasUserAgent) {
       List<String> userAgentList = new ArrayList<>();
@@ -417,12 +426,17 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     // http://developer.android.com/reference/java/net/HttpURLConnection.html
     // HttpURLConnection uses the GET method by default. It will use POST if setDoOutput(true) has
     // been called.
+    Log.i(LOG_TAG, "in writeRequestData");
     connection.setDoOutput(true); // This makes it something other than a HTTP GET.
     // Write the data.
+    Log.i(LOG_TAG, "length 1");
     connection.setFixedLengthStreamingMode(postData.length);
+    Log.i(LOG_TAG, "got length 1");
     BufferedOutputStream out = new BufferedOutputStream(connection.getOutputStream());
     try {
+      Log.i(LOG_TAG, "length 2");
       out.write(postData, 0, postData.length);
+      Log.i(LOG_TAG, "got length 2");
       out.flush();
     } finally {
       out.close();
