@@ -263,19 +263,23 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                     operation.put("deprecated", "false");
                 }
                 JSONArray allParams = new JSONArray(params.toString());
+                JSONArray paramsList = new JSONArray();
                 try {
-                    JSONArray paramsList = operationObj.getJSONArray("parameters");
-                    int numParams = paramsList.length();
-                    for (int i = 0; i < numParams; i++) {
-                        JSONObject paramObj = paramsList.getJSONObject(i);
-                        String paramName = paramObj.getString("name");
-                        JSONObject param = new JSONObject();
-                        param.put("name", paramName);
-                        param.put("type", "text");
-                        param.put("inQuery", "true");
-                        allParams.put(param);
-                    }
+                    paramsList = operationObj.getJSONArray("parameters");
                 } catch (JSONException e) {
+                    // sometimes the parameters are hidden inside another object (OpenAI does this)
+                    // we look for that here
+                    paramsList = findParamsList(operationObj);
+                }
+                int numParams = paramsList.length();
+                for (int i = 0; i < numParams; i++) {
+                    JSONObject paramObj = paramsList.getJSONObject(i);
+                    String paramName = paramObj.getString("name");
+                    JSONObject param = new JSONObject();
+                    param.put("name", paramName);
+                    param.put("type", "text");
+                    param.put("inQuery", "true");
+                    allParams.put(param);
                 }
                 operation.put("params", allParams);
                 // only make new block if it's the first with the start word
@@ -372,6 +376,55 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         JSONObject json = new JSONObject(map);
         byte[] components = defineJSONBlocks(json);
         return components;
+    }
+
+    // recursively look for a "parameters" key in the dictionary
+    private JSONArray findParamsList(JSONObject obj) {
+        Set keySet = obj.keySet();
+        Iterator<String> keyItr = keySet.iterator();
+        // check top level
+        while (keyItr.hasNext()) {
+            String key = keyItr.next();
+            if (key.equals("parameters")) {
+                try {
+                    return obj.getJSONArray("parameters");
+                } catch (JSONException e) {
+                    // sometimes the list of parameters is not a list
+                    // OpenAI I'm looking at you again
+                    String paramsStr = obj.getString("parameters");
+                    JSONObject paramsObj = new JSONObject(paramsStr);
+                    Set paramKeys = paramsObj.keySet();
+                    // this implementation assumes OpenAI's format of {paramName: example}
+                    // might need to generalize if other OpenAPI specs are found that put params as an object
+                    JSONArray convertedArr = new JSONArray();
+                    Iterator<String> paramItr = paramKeys.iterator();
+                    while (paramItr.hasNext()) {
+                        String paramName = paramItr.next();
+                        JSONObject paramObj = new JSONObject();
+                        paramObj.put("name", paramName);
+                        convertedArr.put(paramObj);
+                    }
+                    // turn into obj name: key
+                    return convertedArr;
+                }
+            }
+        }
+        // recurse on all jsonobjects
+        keyItr = keySet.iterator();
+        while (keyItr.hasNext()) {
+            String key = keyItr.next();
+            try {
+                JSONObject nextObj = obj.getJSONObject(key);
+                JSONArray recurseResult = findParamsList(nextObj);
+                int numParams = recurseResult.length();
+                if (numParams > 0) return recurseResult;
+            } catch (JSONException e) {
+                // not a JSONObject, move on
+            }
+        }
+        
+        // couldn't find anything, return an empty list
+        return new JSONArray();
     }
 
     private void importToProject(Map<String, byte[]> contents, long projectId,
