@@ -224,7 +224,9 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                         JSONObject param = new JSONObject();
                         param.put("name", paramName);
                         param.put("type", "text");
-                        param.put("inQuery", "false");
+                        param.put("paramType", "path");
+                        LOG.info("putting paramtype path");
+                        LOG.info(paramName);
                         params.put(param);
                     }
                 }
@@ -246,6 +248,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 // operationID not required, might need to find another way to name operations without it
                 String operationID = operationObj.getString("operationId");
                 String operationName = key + "_" + operationID;
+                LOG.info("parsing " + operationName);
                 operation.put("name", operationName);
                 operationCode.put("name", operationName);
                 String description;
@@ -266,20 +269,27 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 JSONArray paramsList = new JSONArray();
                 try {
                     paramsList = operationObj.getJSONArray("parameters");
+                    int numParams = paramsList.length();
+                    for (int i = 0; i < numParams; i++) {
+                        JSONObject paramObj = paramsList.getJSONObject(i);
+                        String paramName = paramObj.getString("name");
+                        JSONObject param = new JSONObject();
+                        param.put("name", paramName);
+                        param.put("type", "text");
+                        param.put("paramType", "query");
+                        LOG.info("putting paramtype query");
+                        LOG.info(paramName);
+                        allParams.put(param);
+                    }
                 } catch (JSONException e) {
                     // sometimes the parameters are hidden inside another object (OpenAI does this)
                     // we look for that here
                     paramsList = findParamsList(operationObj);
-                }
-                int numParams = paramsList.length();
-                for (int i = 0; i < numParams; i++) {
-                    JSONObject paramObj = paramsList.getJSONObject(i);
-                    String paramName = paramObj.getString("name");
-                    JSONObject param = new JSONObject();
-                    param.put("name", paramName);
-                    param.put("type", "text");
-                    param.put("inQuery", "true");
-                    allParams.put(param);
+                    int numParams = paramsList.length();
+                    for (int i = 0; i < numParams; i++) {
+                        JSONObject param = paramsList.getJSONObject(i);
+                        allParams.put(param);
+                    }
                 }
                 operation.put("params", allParams);
                 // only make new block if it's the first with the start word
@@ -338,7 +348,6 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 }
             }
         }
-        
 
         for (String startWord : methodsMap.keySet()) {
             List<JSONObject> operationsArr = methodsMap.get(startWord);
@@ -402,6 +411,10 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                         String paramName = paramItr.next();
                         JSONObject paramObj = new JSONObject();
                         paramObj.put("name", paramName);
+                        paramObj.put("type", "text");
+                        paramObj.put("paramType", "data");
+                        LOG.info("putting paramtype data");
+                        LOG.info(paramName);
                         convertedArr.put(paramObj);
                     }
                     // turn into obj name: key
