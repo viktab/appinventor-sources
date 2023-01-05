@@ -625,9 +625,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
         continue;
       }
       String argName = argInfo.getString("name");
-      String arg = args.getObject(i).toString();
+      Object arg = args.getObject(i);
       Log.i(LOG_TAG, argName);
-      Log.i(LOG_TAG, arg);
+      Log.i(LOG_TAG, arg.toString());
       data.put(argName, arg);
     }
     Log.i(LOG_TAG, data.toString());
