@@ -60,6 +60,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.Iterator;
 
+import java.nio.charset.StandardCharsets;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -191,14 +193,35 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       }
     });
 
-    final String METHOD = "Get";
-    Map<String, List<String>> requestHeadersMap = parseRequestHeaders(requestHeader);
-
     String[] functionNameParts = functionName.split("_");
-    String restWord = functionNameParts[0];
+    final String restWord = functionNameParts[0];
     String pastTense = operationTypesPassedTense.get(restWord);
     functionNameParts[0] = pastTense;
     final String callbackMethod = join("_", functionNameParts);
+
+    final String METHOD = restWord.substring(0, 1).toUpperCase() + restWord.substring(1).toLowerCase();
+    Map<String, List<String>> requestHeadersMap = parseRequestHeaders(requestHeader);
+
+    byte[] postBytes = null;
+
+    Log.i(LOG_TAG, "getting post data");
+    Log.i(LOG_TAG, METHOD);
+
+
+    if (METHOD.equals("Post")) {
+      Log.i(LOG_TAG, "is post");
+      String postStr = getPostData(argsInfo, args);
+      Log.i(LOG_TAG, postStr);
+      try {
+        postBytes = postStr.getBytes("UTF-8");
+      } catch(Exception e) {
+        postBytes = postStr.getBytes();
+      }
+    } else {
+      Log.i(LOG_TAG, "not post???");
+    }
+
+    final byte[] postData = postBytes;
 
     try {
       final CapturedProperties webProps = new CapturedProperties(urlWithParams, 10000, requestHeadersMap);
@@ -206,7 +229,8 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
         @Override
         public void run() {
           Log.i(LOG_TAG, "calling perform request");
-          performRequest(webProps, null, "GET", METHOD, callbackMethod);
+          Log.i(LOG_TAG, new String(postData, StandardCharsets.UTF_8));
+          performRequest(webProps, postData, restWord.toUpperCase(), METHOD, callbackMethod);
         }
       });
     } catch (MalformedURLException e) {
@@ -273,6 +297,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
 
           
           final String responseContent = getResponseContent(connection);
+
+          Log.i(LOG_TAG, "response: ");
+          Log.i(LOG_TAG, responseContent);
 
           // Dispatch the event.
           activity.runOnUiThread(new Runnable() {
@@ -382,6 +409,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       List<String> userAgentList = new ArrayList<>();
       userAgentList.add("AppInventor");
       requestHeadersMap.put("User-Agent", userAgentList);
+      List<String> contentTypeList = new ArrayList<>();
+      contentTypeList.add("application/json");
+      requestHeadersMap.put("Content-Type", contentTypeList);
     }
     return requestHeadersMap;
   } 
@@ -437,7 +467,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       Log.i(LOG_TAG, "length 2");
       out.write(postData, 0, postData.length);
       Log.i(LOG_TAG, "got length 2");
+      Log.i(LOG_TAG, new String(postData, "UTF-8"));
       out.flush();
+      Log.i(LOG_TAG, "finished write");
     } finally {
       out.close();
     }
@@ -544,9 +576,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     for (int i = 0; i < args.size(); i++) {
       JSONObject argInfo = argsInfo.getJSONObject(i);
       String argName = argInfo.getString("name");
-      String inQuery = argInfo.getString("inQuery");
+      Boolean inQuery = argInfo.getString("paramType").equals("query");
       String arg = args.getObject(i).toString();
-      if(inQuery.equals("true")) {
+      if(inQuery) {
         continue;
       }
       try {
@@ -561,9 +593,9 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     for (int i = 0; i < args.size(); i++) {
       JSONObject argInfo = argsInfo.getJSONObject(i);
       String argName = argInfo.getString("name");
-      String inQuery = argInfo.getString("inQuery");
+      Boolean inQuery = argInfo.getString("paramType").equals("query");
       String arg = args.getObject(i).toString();
-      if(inQuery.equals("false")) {
+      if(!inQuery) {
         continue;
       }
       try {
@@ -581,6 +613,25 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       }
     }
     return url;
+  }
+
+  private String getPostData(JSONArray argsInfo, YailList args) {
+    JSONObject data = new JSONObject();
+    Log.i(LOG_TAG, "in getPostData");
+    for (int i = 0; i < args.size(); i++) {
+      JSONObject argInfo = argsInfo.getJSONObject(i);
+      Log.i(LOG_TAG, argInfo.toString());
+      if (!argInfo.getString("paramType").equals("data")) {
+        continue;
+      }
+      String argName = argInfo.getString("name");
+      Object arg = args.getObject(i);
+      Log.i(LOG_TAG, argName);
+      Log.i(LOG_TAG, arg.toString());
+      data.put(argName, arg);
+    }
+    Log.i(LOG_TAG, data.toString());
+    return data.toString();
   }
 
   // show a toast using a TextView, which allows us to set the
