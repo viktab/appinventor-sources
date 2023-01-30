@@ -229,7 +229,7 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
         @Override
         public void run() {
           Log.i(LOG_TAG, "calling perform request");
-          Log.i(LOG_TAG, new String(postData, StandardCharsets.UTF_8));
+          // Log.i(LOG_TAG, new String(postData, StandardCharsets.UTF_8));
           performRequest(webProps, postData, restWord.toUpperCase(), METHOD, callbackMethod);
         }
       });
@@ -628,7 +628,10 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
       Object arg = args.getObject(i);
       Log.i(LOG_TAG, argName);
       Log.i(LOG_TAG, arg.toString());
-      data.put(argName, arg);
+      // these are causing issues for openai createcompletion - will need to fix for real eventually
+      if (!argName.equals("logit_bias") && !argName.equals("suffix")) {
+        data.put(argName, arg);
+      }
     }
     Log.i(LOG_TAG, data.toString());
     return data.toString();

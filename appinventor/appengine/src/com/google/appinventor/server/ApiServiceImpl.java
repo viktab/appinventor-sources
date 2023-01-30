@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -207,31 +208,66 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
             String path = pathItr.next();
             String[] pathParts = path.split("/");
             JSONArray params = new JSONArray();
-            int j = 0;
-            for (String part : pathParts) {
-                if (j == 0) {
-                    j++;
-                    continue;
-                }
-                if (part.charAt(0) == '{' && part.charAt(part.length()-1) == '}') {
-                    String partRemaining = part;
-                    while(partRemaining.length() > 0) {
-                        int paramStart = partRemaining.indexOf("{");
-                        int paramEnd = partRemaining.indexOf("}");
-                        String currPart = partRemaining.substring(paramStart, paramEnd+1);
-                        partRemaining = partRemaining.substring(paramEnd+1);
-                        String paramName = currPart.substring(1, currPart.length()-1);
-                        JSONObject param = new JSONObject();
-                        param.put("name", paramName);
-                        param.put("type", "text");
-                        param.put("paramType", "path");
-                        LOG.info("putting paramtype path");
-                        LOG.info(paramName);
-                        params.put(param);
+            JSONObject pathObj = pathsObj.getJSONObject(path);
+            JSONArray pathParams = new JSONArray();
+            if (pathObj.has("parameters")) {
+                JSONArray paramsList = pathObj.getJSONArray("parameters");
+                int numParams = paramsList.length();
+                for (int i = 0; i < numParams; i++) {
+                    JSONObject paramObj = paramsList.getJSONObject(i);
+                    // check if param is a ref
+                    String paramName;
+                    String paramType;
+                    if (paramObj.has("name")) {
+                        paramName = paramObj.getString("name");
+                        paramType = "path";
+                    } else if (paramObj.has("$ref")) {
+                        String ref = paramObj.getString("$ref");
+                        String[] arr = ref.split("/");
+                        String[] refKeys = Arrays.copyOfRange(arr, 1, arr.length);
+                        JSONObject currObj = apiJSON;
+                        // TODO - assumes entire path is obects. Need to adjust for array too
+                        for (String refKey : refKeys) {
+                            LOG.info(refKey);
+                            currObj = currObj.getJSONObject(refKey);
+                        }
+                        paramName = currObj.getString("name");
+                        paramType = currObj.getString("in");
+                    } else {
+                        LOG.info("no param name! No ref :(");
+                        continue;
                     }
+                    JSONObject param = new JSONObject();
+                    param.put("name", paramName);
+                    param.put("type", "text");
+                    param.put("paramType", paramType);
+                    pathParams.put(param);
                 }
             }
-            JSONObject pathObj = pathsObj.getJSONObject(path);
+            // int j = 0;
+            // for (String part : pathParts) {
+            //     if (j == 0) {
+            //         j++;
+            //         continue;
+            //     }
+            //     if (part.charAt(0) == '{' && part.charAt(part.length()-1) == '}') {
+            //         String partRemaining = part;
+            //         while(partRemaining.length() > 0) {
+            //             int paramStart = partRemaining.indexOf("{");
+            //             int paramEnd = partRemaining.indexOf("}");
+            //             String currPart = partRemaining.substring(paramStart, paramEnd+1);
+            //             partRemaining = partRemaining.substring(paramEnd+1);
+            //             String paramName = currPart.substring(1, currPart.length()-1);
+            //             JSONObject param = new JSONObject();
+            //             param.put("name", paramName);
+            //             param.put("type", "text");
+            //             param.put("paramType", "path");
+            //             LOG.info("putting paramtype path");
+            //             LOG.info(paramName);
+            //             params.put(param);
+            //         }
+            //     }
+            // }
             Set keySet = pathObj.keySet();
             Iterator<String> keyItr = keySet.iterator();
             while (keyItr.hasNext()) {
@@ -247,6 +283,13 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 operationCode.put("path", path);
                 // operationID not required, might need to find another way to name operations without it
                 String operationID = operationObj.getString("operationId");
+                // for (String opType : operationTypes) {
+                //     LOG.info("checking opType " + opType);
+                //     if (operationID.toLowerCase().startsWith(opType)) {
+                //         LOG.info("found it!!");
+                //         operationID = operationID.substring(opType.length());
+                //     }
+                // }
                 String operationName = key + "_" + operationID;
                 LOG.info("parsing " + operationName);
                 operation.put("name", operationName);
@@ -269,28 +312,100 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                 JSONArray paramsList = new JSONArray();
                 try {
                     paramsList = operationObj.getJSONArray("parameters");
-                    int numParams = paramsList.length();
-                    for (int i = 0; i < numParams; i++) {
-                        JSONObject paramObj = paramsList.getJSONObject(i);
-                        String paramName = paramObj.getString("name");
-                        JSONObject param = new JSONObject();
-                        param.put("name", paramName);
-                        param.put("type", "text");
-                        param.put("paramType", "query");
-                        LOG.info("putting paramtype query");
-                        LOG.info(paramName);
-                        allParams.put(param);
-                    }
                 } catch (JSONException e) {
                     // sometimes the parameters are hidden inside another object (OpenAI does this)
                     // we look for that here
-                    paramsList = findParamsList(operationObj);
-                    int numParams = paramsList.length();
-                    for (int i = 0; i < numParams; i++) {
-                        JSONObject param = paramsList.getJSONObject(i);
-                        allParams.put(param);
+                    // paramsList = findParamsList(operationObj);
+                    // nevermind.
+                    LOG.info("no params found in openapi spec for " + operationName);
+                    // TODO: don't parse the params themselves twice
+                }
+                int numParams = paramsList.length();
+                for (int i = 0; i < numParams; i++) {
+                    JSONObject paramObj = paramsList.getJSONObject(i);
+                    // check if param is a ref
+                    String paramName;
+                    String paramType;
+                    if (paramObj.has("name")) {
+                        paramName = paramObj.getString("name");
+                        paramType = "query";
+                    } else if (paramObj.has("$ref")) {
+                        String ref = paramObj.getString("$ref");
+                        String[] arr = ref.split("/");
+                        String[] refKeys = Arrays.copyOfRange(arr, 1, arr.length);
+                        JSONObject currObj = apiJSON;
+                        // TODO - assumes entire path is obects. Need to adjust for array too
+                        for (String refKey : refKeys) {
+                            currObj = currObj.getJSONObject(refKey);
+                        }
+                        paramName = currObj.getString("name");
+                        paramType = currObj.getString("in");
+                    } else {
+                        LOG.info("no param name! No ref :(");
+                        continue;
+                    }
+                    JSONObject param = new JSONObject();
+                    param.put("name", paramName);
+                    param.put("type", "text");
+                    param.put("paramType", paramType);
+                    allParams.put(param);
+                }
+                for (int i = 0; i < pathParams.length(); i++) {
+                    JSONObject pathParam = pathParams.getJSONObject(i);
+                    allParams.put(pathParam);
+                }
+                if (operationObj.has("requestBody")) {
+                    LOG.info("has requestBody");
+                    JSONObject requestBodyObj = operationObj.getJSONObject("requestBody");
+                    JSONObject contentObj = requestBodyObj.getJSONObject("content");
+                    if (!contentObj.has("application/json")) {
+                        LOG.info("request body doesn't have application/json option. Other options not implemeted yet");
+                    } else {
+                        LOG.info("has application/json");
+                        JSONObject jsonObj = contentObj.getJSONObject("application/json");
+                        JSONObject schema = jsonObj.getJSONObject("schema");
+                        if (schema.has("$ref")) {
+                            LOG.info("has ref");
+                            String ref = schema.getString("$ref");
+                            LOG.info(ref);
+                            String[] arr = ref.split("/");
+                            String[] refKeys = Arrays.copyOfRange(arr, 1, arr.length);
+                            JSONObject currObj = apiJSON;
+                            // TODO - assumes entire path is obects. Need to adjust for array too
+                            for (String refKey : refKeys) {
+                                LOG.info(refKey);
+                                currObj = currObj.getJSONObject(refKey);
+                            }
+                            schema = currObj;
+                        }
+                        // if (schema.has("properties")) {
+                        //     LOG.info("has properties");
+                        //     JSONObject bodyParamsObj = schema.getJSONObject("properties");
+                        //     Set bodyKeySet = bodyParamsObj.keySet();
+                        //     Iterator<String> bodyParamItr = bodyKeySet.iterator();
+                        //     while (bodyParamItr.hasNext()) {
+                        //         String paramName = bodyParamItr.next();
+                        //         LOG.info(paramName);
+                        //         JSONObject param = new JSONObject();
+                        //         param.put("name", paramName);
+                        //         param.put("type", "text");
+                        //         param.put("paramType", "data");
+                        //         allParams.put(param);
+                        //     }
+                        // }
                     }
                 }
+                // } catch (JSONException e) {
+                //     // sometimes the parameters are hidden inside another object (OpenAI does this)
+                //     // we look for that here
+                //     LOG.info("in exception");
+                //     paramsList = findParamsList(operationObj);
+                //     int numParams = paramsList.length();
+                //     for (int i = 0; i < numParams; i++) {
+                //         JSONObject param = paramsList.getJSONObject(i);
+                //         allParams.put(param);
+                //     }
+                // }
                 operation.put("params", allParams);
                 // only make new block if it's the first with the start word
                 if (!methodsMap.containsKey(pathParts[1])) {
