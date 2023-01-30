@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.json.JSONException;
 
 /**
@@ -351,6 +352,39 @@ public class YailDictionary extends LinkedHashMap<Object, Object>
   @SuppressWarnings("WeakerAccess")  // called from runtime.scm
   public static <T> List<Object> walkKeyPath(YailObject<?> object, List<T> keysOrIndices) {
     return walkKeyPath(object, keysOrIndices, new ArrayList<>());
+  }
+
+  @SuppressWarnings("WeakerAccess")  // called from runtime.scm
+  public static Object findKey(Object target, Object targetKey) {
+    if (target instanceof YailDictionary) {
+      Set<?> keys = ((YailDictionary) target).keySet();
+      Iterator<?> keyItr = keys.iterator();
+      while (keyItr.hasNext()) {
+        Object key = keyItr.next();
+        if (key.equals(targetKey)) {
+          return ((YailDictionary) target).get(key);
+        }
+        Object val = ((YailDictionary) target).get(key);
+        if (val instanceof YailDictionary || val instanceof YailList) {
+          Object recurseResult = findKey(val, targetKey);
+          if (recurseResult != null) {
+            return recurseResult;
+          }
+        }
+      }
+    } else if (target instanceof YailList) {
+      Iterator<?> listItr = ((YailList) target).iterator();
+      while (listItr.hasNext()) {
+        Object val = listItr.next();
+        if (val instanceof YailDictionary || val instanceof YailList) {
+          Object recurseResult = findKey(val, targetKey);
+          if (recurseResult != null) {
+            return recurseResult;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   private static int keyToIndex(List<?> target, Object key) {

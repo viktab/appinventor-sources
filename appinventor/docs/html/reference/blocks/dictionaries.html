@@ -147,6 +147,7 @@
   <li><a href="#merge-into-dictionary">merge into dictionary</a></li>
   <li><a href="#list-by-walking-key-path">list by walking key path</a></li>
   <li><a href="#walk-all-at-level">walk all at level</a></li>
+  <li><a href="#find-key">find key</a></li>
   <li><a href="#is-a-dictionary">is a dictionary?</a></li>
 </ul>
 
@@ -351,6 +352,10 @@ This block reverses the conversion performed by the <a href="#list-of-pairs-to-d
 <p><img src="images/dictionaries/walk-all.png" alt="" /></p>
 
 <p>The <code class="dictionary block highlighter-rouge">walk all at level</code> block is a specialized block that can be used in the key path of a <code class="dictionary block highlighter-rouge">list by walking key path</code>. When encountered during a walk, it causes every item at that level to be explored. For dictionaries, this means that every value is visited. For lists, each item in the list is visited. This can be used to aggregate information from a list of items in a dictionary, such as the first name of every person in a database represented by JSON objects. See the <a href="#list-by-walking-key-path"><code class="dictionary block highlighter-rouge">list by walking key path</code></a> block for examples.</p>
+
+<h3 id="find-key">find key</h3>
+
+<p>The <code class="dictionary block highlighter-rouge">find key</code> block is a specialized block that searches the entire dictionary for the given key. This includes recursively searching lists and dictionaries within the given dictionary and is espcially useful for parsing complicated dictionaries that go many levels deep.</p>
 
 <h3 id="is-a-dictionary">is a dictionary?</h3>
 

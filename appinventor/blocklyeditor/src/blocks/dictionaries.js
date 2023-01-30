@@ -504,6 +504,26 @@ Blockly.Blocks['dictionaries_walk_all'] = {
   typeblock: [{ translatedName: Blockly.Msg.LANG_DICTIONARIES_WALK_TREE_ALL_TITLE }]
 };
 
+Blockly.Blocks['dictionaries_find_key'] = {
+  category: 'Dictionaries',
+  helpUrl: Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_HELPURL,
+  init: function() {
+    this.setColour(Blockly.DICTIONARY_CATEGORY_HUE);
+    var checkTypeDict = Blockly.Blocks.Utilities.YailTypeToBlocklyType("dictionary",Blockly.Blocks.Utilities.INPUT);
+    var checkTypeAny = Blockly.Blocks.Utilities.YailTypeToBlocklyType("any",Blockly.Blocks.Utilities.INPUT);
+    var checkTypeKey = Blockly.Blocks.Utilities.YailTypeToBlocklyType("key",Blockly.Blocks.Utilities.INPUT);
+    this.interpolateMsg(Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TITLE,
+      ['KEY', checkTypeKey, Blockly.ALIGN_RIGHT],
+      ['DICT', checkTypeDict, Blockly.ALIGN_RIGHT],
+      ['NOTFOUND', checkTypeAny, Blockly.ALIGN_RIGHT],
+      Blockly.ALIGN_LEFT);
+    this.setOutput(true, Blockly.Blocks.Utilities.YailTypeToBlocklyType("any",Blockly.Blocks.Utilities.OUTPUT));
+    this.setTooltip(Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TOOLTIP);
+    this.setInputsInline(false);
+  },
+  typeblock: [{ translatedName: Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TITLE }]
+};
+
 Blockly.Blocks['dictionaries_is_dict'] = {
    // Gets all the values in a dictionary
   category : 'Dictionaries',

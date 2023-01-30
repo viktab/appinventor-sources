@@ -2711,6 +2711,11 @@ Dictionary implementation.
 (define (yail-dictionary? x)
   (instance? x YailDictionary))
 
+(define (yail-dictionary-find-key key yail-dictionary default)
+  (let ((result (YailDictionary:findKey (as YailDictionary yail-dictionary) key)))
+    (if (eq? result #!null)
+      default
+      result)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; End of Dictionary implementation
