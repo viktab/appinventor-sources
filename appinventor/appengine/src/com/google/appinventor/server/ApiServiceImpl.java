@@ -378,21 +378,28 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                             }
                             schema = currObj;
                         }
-                        // if (schema.has("properties")) {
-                        //     LOG.info("has properties");
-                        //     JSONObject bodyParamsObj = schema.getJSONObject("properties");
-                        //     Set bodyKeySet = bodyParamsObj.keySet();
-                        //     Iterator<String> bodyParamItr = bodyKeySet.iterator();
-                        //     while (bodyParamItr.hasNext()) {
-                        //         String paramName = bodyParamItr.next();
-                        //         LOG.info(paramName);
-                        //         JSONObject param = new JSONObject();
-                        //         param.put("name", paramName);
-                        //         param.put("type", "text");
-                        //         param.put("paramType", "data");
-                        //         allParams.put(param);
-                        //     }
-                        // }
+                        if (schema.has("properties")) {
+                            JSONObject bodyParamsObj = schema.getJSONObject("properties");
+                            Set bodyKeySet = bodyParamsObj.keySet();
+                            Iterator<String> bodyParamItr = bodyKeySet.iterator();
+                            while (bodyParamItr.hasNext()) {
+                                String paramName = bodyParamItr.next();
+                                JSONObject param = new JSONObject();
+                                param.put("name", paramName);
+                                param.put("type", "text");
+                                param.put("paramType", "data");
+                                // temp change so openai completions dont require a million params
+                                // TODO - more permanent fix
+                                if (operationName.equals("post_createCompletion")) {
+                                    if (paramName.equals("model") || paramName.equals("prompt") || 
+                                    paramName.equals("max_tokens") || paramName.equals("temperature")) {
+                                        allParams.put(param);
+                                    }
+                                } else {
+                                    allParams.put(param);
+                                }
+                            }
+                        }
                     }
                 }
                 // } catch (JSONException e) {
