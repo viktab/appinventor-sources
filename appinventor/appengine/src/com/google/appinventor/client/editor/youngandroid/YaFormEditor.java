@@ -529,14 +529,11 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
   }
 
   private void onFileLoaded(String content) {
-    Ode.CLog("content?");
-    Ode.CLog(content);
     JSONObject propertiesObject = YoungAndroidSourceAnalyzer.parseSourceFile(
         content, JSON_PARSER);
     try {
       form = createMockForm(propertiesObject.getProperties().get("Properties").asObject());
     } catch(ComponentNotFoundException e) {
-      Ode.CLog("throwing component not found error");
       Ode.getInstance().recordCorruptProject(getProjectId(), getProjectRootNode().getName(),
           e.getMessage());
       ErrorReporter.reportError(MESSAGES.noComponentFound(e.getComponentName(),
@@ -614,12 +611,10 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
    * Parses the JSON properties and creates the form and its component structure.
    */
   private MockForm createMockForm(JSONObject propertiesObject) {
-    Ode.CLog("creating mock form");
     return (MockForm) createMockComponent(propertiesObject, null);
   }
 
   private MockComponent createMockComponent(JSONObject properties, MockContainer container) {
-    Ode.CLog("creating mock component");
     return createMockComponent(properties, container, null);
   }
 
@@ -628,60 +623,40 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
    * recursively for nested components. For the initial invocation parent shall be null.
    */
   private MockComponent createMockComponent(JSONObject propertiesObject, MockContainer parent, Map<String, String> substitution) {
-    Ode.CLog("creating mock component for real");
-    Ode.CLog("prop json");
-    Ode.CLog(propertiesObject.toString());
     Map<String, JSONValue> properties = propertiesObject.getProperties();
-    Ode.CLog("1");
 
     // Component name and type
     String componentType = properties.get("$Type").asString().getString();
-    Ode.CLog("2");
 
     // Set the name of the component (on instantiation components are assigned a generated name)
     boolean shouldRename = false;
     String componentName = properties.get("$Name").asString().getString();
-    Ode.CLog("3");
-    Ode.CLog(componentName);
 
     // Instantiate a mock component for the visual designer
     MockComponent mockComponent;
     if (componentType.equals(MockForm.TYPE)) {
-      Ode.CLog("4");
       Preconditions.checkArgument(parent == null);
-      Ode.CLog("5");
 
       // Instantiate new root component
       mockComponent = new MockForm(this);
-      Ode.CLog("6");
     } else {
-      Ode.CLog("7");
-      Ode.CLog(componentType);
-      String mockComponentType = componentType;
-      if (mockComponentType.toLowerCase().contains("api")) {
-        mockComponentType = "OpenAPI";
-      }
-      mockComponent = SimpleComponentDescriptor.createMockComponent(mockComponentType,
-          COMPONENT_DATABASE.getComponentType(mockComponentType), this);
-      Ode.CLog("8");
+      mockComponent = SimpleComponentDescriptor.createMockComponent(componentType,
+          COMPONENT_DATABASE.getComponentType(componentType), this);
 
       // Ensure unique name on paste
       if (substitution != null) {
-        Ode.CLog("9");
         List<String> names = getComponentNames();
         if (names.contains(componentName)) {
           String oldName = componentName;
           componentName = gensymName(componentType, componentName);
           substitution.put(oldName, componentName);
           shouldRename = true;
-          Ode.CLog("10");
         } else if (!mockComponent.getPropertyValue(PROPERTY_NAME_NAME).equals(componentName)) {
           // If the SCD gensyms a name, but it is free, we rename it back.
           shouldRename = true;
         }
         properties.remove(MockComponent.PROPERTY_NAME_UUID);
       }
-      Ode.CLog("11");
 
       // Add the component to its parent component (and if it is non-visible, add it to the
       // nonVisibleComponent panel).
@@ -689,7 +664,6 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
       if (!mockComponent.isVisibleComponent()) {
         nonVisibleComponentsPanel.addComponent(mockComponent);
       }
-      Ode.CLog("12");
     }
 
     if (shouldRename) {
@@ -707,7 +681,6 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
       properties.remove(MockVisibleComponent.PROPERTY_NAME_ROW);
       properties.remove(MockVisibleComponent.PROPERTY_NAME_COLUMN);
     }
-    Ode.CLog("13");
 
     // Set component properties
     for (String name : properties.keySet()) {
@@ -726,7 +699,6 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
         mockComponent.changeProperty("AppName", projectName);
       }
     }
-    Ode.CLog("14");
 
     // Add component type to the blocks editor
     getBlocksEditor().addComponent(mockComponent.getType(), mockComponent.getName(),
@@ -738,7 +710,6 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
         createMockComponent(nestedComponent.asObject(), (MockContainer) mockComponent, substitution);
       }
     }
-    Ode.CLog("15");
     return mockComponent;
   }
 
@@ -901,8 +872,6 @@ public final class YaFormEditor extends SimpleEditor implements FormChangeListen
    */
   private void encodeComponentProperties(MockComponent component, StringBuilder sb, boolean forYail) {
     // The component encoding starts with component name and type
-    Ode.CLog("encoding componnet properties");
-
     String componentType = component.getType();
     EditableProperties properties = component.getProperties();
     sb.append("{\"$Name\":\"");

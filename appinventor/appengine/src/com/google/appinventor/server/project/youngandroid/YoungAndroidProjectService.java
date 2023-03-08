@@ -105,6 +105,7 @@ public final class YoungAndroidProjectService extends CommonProjectService {
   public static final String SRC_FOLDER = YoungAndroidSourceAnalyzer.SRC_FOLDER;
   protected static final String ASSETS_FOLDER = "assets";
   private static final String EXTERNAL_COMPS_FOLDER = "assets/external_comps";
+  private static final String API_FOLDER = "assets/api_comps";
   static final String PROJECT_DIRECTORY = "youngandroidproject";
 
   // TODO(user) Source these from a common constants library.
@@ -333,8 +334,9 @@ public final class YoungAndroidProjectService extends CommonProjectService {
       if (fileId.startsWith(ASSETS_FOLDER + '/')) {
         if (fileId.startsWith(EXTERNAL_COMPS_FOLDER + '/')) {
           compsNode.addChild(new YoungAndroidComponentNode(StorageUtil.basename(fileId), fileId));
-        }
-        else {
+        } else if (fileId.startsWith(API_FOLDER + '/')) {
+          compsNode.addChild(new YoungAndroidComponentNode(StorageUtil.basename(fileId), fileId));
+        } else {
           assetsNode.addChild(new YoungAndroidAssetNode(StorageUtil.basename(fileId), fileId));
         }
       } else if (fileId.startsWith(SRC_FOLDER + '/')) {
