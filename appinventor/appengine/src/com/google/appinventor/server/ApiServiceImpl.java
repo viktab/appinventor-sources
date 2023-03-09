@@ -388,10 +388,17 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                                 param.put("name", paramName);
                                 param.put("type", "text");
                                 param.put("paramType", "data");
+                                LOG.info(operationName);
                                 // temp change so openai completions dont require a million params
                                 // TODO - more permanent fix
                                 if (operationName.equals("post_createCompletion")) {
                                     if (paramName.equals("model") || paramName.equals("prompt") || 
+                                    paramName.equals("max_tokens") || paramName.equals("temperature")) {
+                                        allParams.put(param);
+                                    }
+                                } else if (operationName.equals("post_createChatCompletion")) {
+                                    LOG.info("is chat");
+                                    if (paramName.equals("model") || paramName.equals("messages") || 
                                     paramName.equals("max_tokens") || paramName.equals("temperature")) {
                                         allParams.put(param);
                                     }

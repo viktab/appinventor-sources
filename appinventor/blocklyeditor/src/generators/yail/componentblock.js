@@ -214,7 +214,8 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     for (var x = 0; x < numOfParams; x++) {
       var argument = Blockly.Yail.valueToCode(methodBlock, 'ARG' + x, Blockly.Yail.ORDER_NONE).replaceAll("\\\"", "\"") || null;
       if(argument != null){
-        paramList += Blockly.Yail.YAIL_SPACER + argument;
+        var argAsJSON = Blockly.Yail.argToJSON(argument);
+        paramList += Blockly.Yail.YAIL_SPACER + argAsJSON;
         itemsAdded++;
       }
     }
@@ -236,7 +237,7 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     }
   }
 
-  return callPrefix
+  var allCode = callPrefix
     + Blockly.Yail.YAIL_QUOTE
     + name
     + Blockly.Yail.YAIL_SPACER
@@ -253,6 +254,8 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     + yailTypes.join(' ')
     + Blockly.Yail.YAIL_CLOSE_COMBINATION
     + Blockly.Yail.YAIL_CLOSE_COMBINATION;
+  console.log(allCode);
+  return allCode;
 };
 
 Blockly.Yail.component_set_get = function() {
@@ -399,4 +402,10 @@ Blockly.Yail.getAPICode = function(methodName, apiCode) {
   }
   var funcAsStr = JSON.stringify(funcAsJSON);
   return funcAsStr.replaceAll("\"", "\\\"");
+}
+
+Blockly.Yail.argToJSON = function(arg) {
+  var code = Blockly.Yail.YAIL_OPEN_COMBINATION + "get-json-display-representation" + Blockly.Yail.YAIL_SPACER;
+  code = code + arg + Blockly.Yail.YAIL_CLOSE_COMBINATION;
+  return code;
 }
