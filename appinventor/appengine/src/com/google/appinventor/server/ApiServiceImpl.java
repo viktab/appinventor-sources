@@ -147,41 +147,44 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         return contents;
     }
 
+    private byte[] defineYAMLBlocks(Map<String, Object> map) {
+        JSONObject json = new JSONObject(map);
+        byte[] components = defineJSONBlocks(json);
+        return components;
+    }
+
+    private byte[] defineJSONBlocks(JSONObject apiJSON) {
+        if (apiJSON.has("openapi")) {
+            String version = apiJSON.getString("openapi");
+            if (version.startsWith("3")) {
+                return defineJSONBlocks3(apiJSON);
+            }
+        } else if (apiJSON.has("swagger")) {
+            String version = apiJSON.getString("swagger");
+            if (version.startsWith("2")) {
+                LOG.info("is version 2");
+            }
+        }
+        return new byte[0];
+    }
+
     // converts the OpenAPI spec into a components.json
     // OpenAPI spec: https://swagger.io/specification/
-    private byte[] defineJSONBlocks(JSONObject apiJSON) {
+    private byte[] defineJSONBlocks3(JSONObject apiJSON) {
         JSONArray componentsJSON = new JSONArray();
-        JSONObject componentJSON = new JSONObject();
         JSONObject functionJSON = new JSONObject();
-        componentJSON.put("nonVisible", "true");
-        componentJSON.put("version", "1");
-        componentJSON.put("external", "true");
-        componentJSON.put("categoryString", "API");
-        componentJSON.put("helpString", "");
-        componentJSON.put("showOnPalette", "true");
-        componentJSON.put("iconName", "ball.png"); // TODO update
-        componentJSON.put("type", "text"); // TODO make this API-specific
-        componentJSON.put("isAPI", "true");
+        JSONObject componentJSON = defineJSONMeta();
 
         JSONObject infoObj = apiJSON.getJSONObject("info");
         String name = infoObj.getString("title");
         componentJSON.put("name", name);
 
         JSONArray properties = new JSONArray();
-        JSONObject headerProp = new JSONObject();
-        headerProp.put("name", "RequestHeader");
-        headerProp.put("editorType", "textArea");
-        headerProp.put("defaultValue", "");
-        headerProp.put("editorArgs", new JSONArray());
+        JSONObject headerProp = defineJSONProps();
         properties.put(headerProp);
 
         JSONArray blockProperties = new JSONArray();
-        JSONObject blockHeaderProp = new JSONObject();
-        blockHeaderProp.put("name", "RequestHeader");
-        blockHeaderProp.put("description", "Header object to use in all your API requests. Follow a JSON format, such as: {\"key1\": \"value1\", \"key2\": \"value2\"}");
-        blockHeaderProp.put("type", "text");
-        blockHeaderProp.put("rw", "read-write");
-        blockHeaderProp.put("deprecated", "false");
+        blockHeaderProp = defineJSONBlockProps();
         blockProperties.put(blockHeaderProp);
 
         JSONArray servers = apiJSON.getJSONArray("servers");
@@ -503,10 +506,75 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         return componentsStr.getBytes();
     }
 
-    private byte[] defineYAMLBlocks(Map<String, Object> map) {
-        JSONObject json = new JSONObject(map);
-        byte[] components = defineJSONBlocks(json);
-        return components;
+    private byte[] defineJSONBlocks2(JSONObject apiJSON) {
+        JSONArray componentsJSON = new JSONArray();
+        JSONObject functionJSON = new JSONObject();
+        JSONObject componentJSON = defineJSONMeta();
+
+        JSONObject infoObj = apiJSON.getJSONObject("info");
+        String name = infoObj.getString("title");
+        componentJSON.put("name", name);
+
+        JSONArray properties = new JSONArray();
+        JSONObject headerProp = defineJSONProps();
+        properties.put(headerProp);
+
+        JSONArray blockProperties = new JSONArray();
+        blockHeaderProp = defineJSONBlockProps();
+        blockProperties.put(blockHeaderProp);
+
+        String serverUrl = apiJSON.getString("servers");
+        functionJSON.put("serverUrl", serverUrl);
+        String[] urlParts = serverUrl.split("/");
+        subDirectory = "/" + urlParts[2] + "/";
+
+        // in theory every path could be its own component, I can try both options later
+        JSONArray methods = new JSONArray();
+        JSONArray events = new JSONArray();
+        JSONArray methodsCode = new JSONArray();
+        JSONObject pathsObj = apiJSON.getJSONObject("paths");
+        Map<String, List<JSONObject>> methodsMap = new HashMap<>();
+        Map<String, List<JSONObject>> methodsMapSimple = new HashMap<>();
+        Map<String, List<JSONObject>> eventsMap = new HashMap<>();
+        Map<String, List<JSONObject>> eventsMapSimple = new HashMap<>();
+        JSONObject collapsedMethods = new JSONObject();
+        JSONObject collapsedEvents = new JSONObject();
+        Set pathSet = pathsObj.keySet();
+        Iterator<String> pathItr = pathSet.iterator();
+        
+    }
+
+    private JSONObject defineJSONMeta() {
+        JSONObject componentJSON = new JSONObject();
+        componentJSON.put("nonVisible", "true");
+        componentJSON.put("version", "1");
+        componentJSON.put("external", "true");
+        componentJSON.put("categoryString", "API");
+        componentJSON.put("helpString", "");
+        componentJSON.put("showOnPalette", "true");
+        componentJSON.put("iconName", "ball.png"); // TODO update with API-related image
+        componentJSON.put("type", "text"); // TODO make this API-specific?
+        componentJSON.put("isAPI", "true");
+        return componentJSON;
+    }
+
+    private JSONObject defineJSONProps() {
+        JSONObject headerProp = new JSONObject();
+        headerProp.put("name", "RequestHeader");
+        headerProp.put("editorType", "textArea");
+        headerProp.put("defaultValue", "");
+        headerProp.put("editorArgs", new JSONArray());
+        return headerProp;
+    }
+
+    private JSONObject defineJSONBlockProps() {
+        JSONObject blockHeaderProp = new JSONObject();
+        blockHeaderProp.put("name", "RequestHeader");
+        blockHeaderProp.put("description", "Header object to use in all your API requests. Follow a JSON format, such as: {\"key1\": \"value1\", \"key2\": \"value2\"}");
+        blockHeaderProp.put("type", "text");
+        blockHeaderProp.put("rw", "read-write");
+        blockHeaderProp.put("deprecated", "false");
+        return blockHeaderProp;
     }
 
     // recursively look for a "parameters" key in the dictionary
