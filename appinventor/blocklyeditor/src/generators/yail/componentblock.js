@@ -405,6 +405,15 @@ Blockly.Yail.getAPICode = function(methodName, apiCode) {
 }
 
 Blockly.Yail.argToJSON = function(arg) {
+  var code = Blockly.Yail.YAIL_CALL_YAIL_PRIMITIVE + "get-json-display-representation" + Blockly.Yail.YAIL_SPACER;
+  code = code + Blockly.Yail.YAIL_OPEN_COMBINATION + Blockly.Yail.YAIL_LIST_CONSTRUCTOR + Blockly.Yail.YAIL_SPACER;
+  code = code + arg;
+  code = code + Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_CLOSE_COMBINATION;
+  code = code + Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_QUOTE + Blockly.Yail.YAIL_OPEN_COMBINATION;
+  code = code + "any" + Blockly.Yail.YAIL_CLOSE_COMBINATION + Blockly.Yail.YAIL_SPACER;
+  code = code + Blockly.Yail.YAIL_DOUBLE_QUOTE + "display json" + Blockly.Yail.YAIL_DOUBLE_QUOTE + Blockly.Yail.YAIL_CLOSE_COMBINATION;
+  return code;
+
   var code = Blockly.Yail.YAIL_OPEN_COMBINATION + "get-json-display-representation" + Blockly.Yail.YAIL_SPACER;
   code = code + arg + Blockly.Yail.YAIL_CLOSE_COMBINATION;
   return code;
