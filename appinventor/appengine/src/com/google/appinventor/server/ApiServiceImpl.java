@@ -395,6 +395,11 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
                                     paramName.equals("max_tokens") || paramName.equals("temperature")) {
                                         allParams.put(param);
                                     }
+                                } else if (operationName.equals("post_createChatCompletion")) {
+                                    if (paramName.equals("model") || paramName.equals("messages") || 
+                                    paramName.equals("max_tokens") || paramName.equals("temperature")) {
+                                        allParams.put(param);
+                                    }
                                 } else {
                                     allParams.put(param);
                                 }
