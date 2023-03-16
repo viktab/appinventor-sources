@@ -236,7 +236,7 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     }
   }
 
-  var allCode = callPrefix
+  return callPrefix
     + Blockly.Yail.YAIL_QUOTE
     + name
     + Blockly.Yail.YAIL_SPACER
@@ -253,8 +253,6 @@ Blockly.Yail.methodHelper = function(methodBlock, name, methodName, generic) {
     + yailTypes.join(' ')
     + Blockly.Yail.YAIL_CLOSE_COMBINATION
     + Blockly.Yail.YAIL_CLOSE_COMBINATION;
-  console.log(allCode);
-  return allCode;
 };
 
 Blockly.Yail.component_set_get = function() {
