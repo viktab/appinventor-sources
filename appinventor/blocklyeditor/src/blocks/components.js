@@ -1,5 +1,5 @@
 // -*- mode: java; c-basic-offset: 2; -*-
-// Copyright © 2013-2018 MIT, All rights reserved
+// Copyright © 2013-2022 MIT, All rights reserved
 // Released under the Apache License, Version 2.0
 // http://www.apache.org/licenses/LICENSE-2.0
 /**
@@ -38,6 +38,7 @@ Blockly.ComponentBlock.COLOUR_SET = '#266643';  // [38, 102, 67]
 Blockly.ComponentBlock.COLOUR_COMPONENT = '#439970';  // [67, 153, 112]
 
 Blockly.ComponentBlock.COMPONENT_SELECTOR = "COMPONENT_SELECTOR";
+Blockly.ComponentBlock.COMPONENT_TYPE_SELECTOR = "COMPONENT_TYPE_SELECTOR";
 
 /**
  * Add a menu option to the context menu for {@code block} to swap between
@@ -239,6 +240,14 @@ Blockly.Blocks.component_event = {
       container.setAttribute('vertical_parameters', "true"); // Only store an element for vertical
                                                              // The absence of this attribute means horizontal.
     }
+
+    // Note that this.parameterNames only contains parameter names that have
+    // overridden the default event parameter names specified in the component
+    // DB
+    for (var i = 0; i < this.parameterNames.length; i++) {
+      container.setAttribute('param_name' + i, this.parameterNames[i]);
+    }
+
     return container;
   },
 
@@ -267,6 +276,20 @@ Blockly.Blocks.component_event = {
       this.instanceName = xmlElement.getAttribute('instance_name');//instance name not needed
     } else {
       delete this.instanceName;
+    }
+
+    // this.parameterNames will be set to a list of names that will override the
+    // default names specified in the component DB. Note that some parameter
+    // names may be overridden while others may remain their defaults
+    this.parameterNames = [];
+    var numParams = this.getDefaultParameters_().length
+    for (var i = 0; i < numParams; i++) {
+      var paramName = xmlElement.getAttribute('param_name' + i);
+      // For now, we only allow explicit parameter names starting at the beginning
+      // of the parameter list.  Some day we may allow an arbitrary subset of the
+      // event params to be explicitly specified.
+      if (!paramName) break;
+      this.parameterNames.push(paramName);
     }
 
     // Orient parameters horizontally by default
@@ -338,7 +361,7 @@ Blockly.Blocks.component_event = {
     }
 
     // Set as badBlock if it doesn't exist.
-    this.verify(); 
+    this.verify();
     // Disable it if it does exist and is deprecated.
     Blockly.ComponentBlock.checkDeprecated(this, eventType);
 
@@ -429,6 +452,16 @@ Blockly.Blocks.component_event = {
   // Return a list of parameter names
   getParameters: function () {
     /** @type {EventDescriptor} */
+    var defaultParameters = this.getDefaultParameters_();
+    var explicitParameterNames = this.getExplicitParameterNames_();
+    var params = [];
+    for (var i = 0; i < defaultParameters.length; i++) {
+      var paramName = explicitParameterNames[i] || defaultParameters[i].name;
+      params.push({name: paramName, type: defaultParameters[i].type});
+    }
+    return params;
+  },
+  getDefaultParameters_: function () {
     var eventType = this.getEventTypeObject();
     if (this.isGeneric) {
       return [
@@ -437,6 +470,9 @@ Blockly.Blocks.component_event = {
         ].concat((eventType && eventType.parameters) || []);
     }
     return eventType && eventType.parameters;
+  },
+  getExplicitParameterNames_: function () {
+    return this.parameterNames;
   },
   // Renames the block's instanceName and type (set in BlocklyBlock constructor), and revises its title
   rename : function(oldname, newname) {
@@ -594,16 +630,18 @@ Blockly.Blocks.component_event = {
       if (varList.length != params.length) {
         return false; // parameters have changed
       }
-      for (var x = 0; x < varList.length; ++x) {
-        var found = false;
-        for (var i = 0, param; param = params[i]; ++i) {
-          if (componentDb.getInternationalizedParameterName(param.name) == varList[x]) {
-            found = true;
-            break;
+      if ("true" === componentType.external) {
+        for (var x = 0; x < varList.length; ++x) {
+          var found = false;
+          for (var i = 0, param; param = params[i]; ++i) {
+            if (componentDb.getInternationalizedParameterName(param.name) == varList[x]) {
+              found = true;
+              break;
+            }
           }
-        }
-        if (!found)  {
-          return false; // parameter name changed
+          if (!found)  {
+            return false; // parameter name changed
+          }
         }
       }
       // No need to check event return type, events do not return.
@@ -832,7 +870,7 @@ Blockly.Blocks.component_method = {
       {name:"checkComponentNotExistsError"}, {name: "checkGenericComponentSocket"}];
 
     // Set as badBlock if it doesn't exist.
-    this.verify(); 
+    this.verify();
     // Disable it if it does exist and is deprecated.
     Blockly.ComponentBlock.checkDeprecated(this, this.getMethodTypeObject());
 
@@ -1282,7 +1320,7 @@ Blockly.Blocks.component_set_get = {
       {name: 'checkEmptySetterSocket'}];
 
     // Set as badBlock if it doesn't exist.
-    this.verify(); 
+    this.verify();
     // Disable it if it does exist and is deprecated.
     Blockly.ComponentBlock.checkDeprecated(this, this.propertyObject);
 
@@ -1553,6 +1591,76 @@ Blockly.Blocks.component_component_block = {
 
 };
 
+/**
+ * Create a component list block for a given component type.
+ * @lends {Blockly.BlockSvg}
+ * @lends {Blockly.Block}
+ */
+Blockly.Blocks['component_all_component_block'] = {
+  category : 'Component',
+
+  helpUrl : function() {
+    var mode = this.typeName === "Form" ? "Screen" : this.typeName;
+    return Blockly.ComponentBlock.HELPURLS[mode];
+  },
+
+  mutationToDom : function() {
+    var container = document.createElement('mutation');
+    container.setAttribute('component_type', this.typeName);
+    return container;
+  },
+
+  domToMutation : function(xmlElement) {
+
+    this.typeName = xmlElement.getAttribute('component_type');
+    this.setColour(Blockly.ComponentBlock.COLOUR_COMPONENT);
+    this.componentTypeDropDown = Blockly.ComponentBlock.createComponentTypeDropDown(this);
+    this.componentTypeDropDown.setValue(this.typeName);
+
+    this.appendDummyInput()
+      .appendField(Blockly.Msg.LANG_COMPONENT_BLOCK_EVERY_COMPONENT_TITLE_EVERY)
+      .appendField(this.componentTypeDropDown, Blockly.ComponentBlock.COMPONENT_TYPE_SELECTOR);
+    this.setOutput(true, Blockly.Blocks.Utilities.YailTypeToBlocklyType("list", Blockly.Blocks.Utilities.OUTPUT));
+    this.errors = [{name:"checkIfUndefinedBlock"}, {name:"checkComponentTypeNotExistsError"}];
+  },
+  // Renames the block's instanceName, type, and reset its title
+  rename : function(oldname, newname) {
+    return true;
+  },
+
+  typeblock : function() {
+    var componentDb = Blockly.mainWorkspace.getComponentDatabase();
+    var tb = [];
+
+    componentDb.forEachInstance(function(instance) {
+      if (instance.typeName != "Form") {
+        tb.push({
+          translatedName: Blockly.Msg.LANG_COMPONENT_BLOCK_EVERY_COMPONENT_TITLE_EVERY +
+              " " + componentDb.getInternationalizedComponentType(instance.typeName),
+          mutatorAttributes: {
+            component_type: instance.typeName,
+          }
+        });
+      }
+    });
+
+    goog.array.removeDuplicates(tb, null, function(t) {
+      return t.mutatorAttributes.component_type;
+    });
+    return tb;
+  },
+
+  verify : function() {
+    // TODO(ewpatton): Logic assumes that components cannot be removed (e.g., editing AIA)
+    if (this.getTopWorkspace().getComponentDatabase().hasType(this.typeName)) {
+      this.notBadBlock();
+    } else {
+      this.badBlock();
+    }
+  }
+
+};
+
 Blockly.ComponentBlock.timeUnits = ["Years", "Months", "Weeks", "Days", "Hours", "Minutes", "Seconds", "Duration"];
 Blockly.ComponentBlock.timeUnitsMenu =
   [[ Blockly.Msg.TIME_YEARS, "Years"],
@@ -1574,6 +1682,12 @@ Blockly.ComponentBlock.isClockMethodName =  function  (name) {
 Blockly.ComponentBlock.createComponentDropDown = function(block){
   var componentDropDown = new Blockly.FieldDropdown([["",""]]);
   componentDropDown.menuGenerator_ = function(){ return block.getTopWorkspace().getComponentDatabase().getComponentNamesByType(block.typeName); };
+  return componentDropDown;
+};
+
+Blockly.ComponentBlock.createComponentTypeDropDown = function(block) {
+  var componentDropDown = new Blockly.FieldDropdown([["",""]]);
+  componentDropDown.menuGenerator_ = function() { return block.getTopWorkspace().getComponentDatabase().getComponentTypes(); };
   return componentDropDown;
 };
 
@@ -1616,6 +1730,8 @@ Blockly.ComponentBlock.HELPURLS = {
   "Navigation": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_NAVIGATION_HELPURL,
   "Polygon": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_POLYGON_HELPURL,
   "Rectangle": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_RECTANGLE_HELPURL,
+  "Chart": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
+  "ChartData2D": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
   "ContactPicker": Blockly.Msg.LANG_COMPONENT_BLOCK_CONTACTPICKER_HELPURL,
   "EmailPicker": Blockly.Msg.LANG_COMPONENT_BLOCK_EMAILPICKER_HELPURL,
   "CloudDB" : Blockly.Msg.LANG_COMPONENT_BLOCK_CLOUDDB_HELPURL,
@@ -1668,6 +1784,7 @@ Blockly.ComponentBlock.HELPURLS = {
   "Web": Blockly.Msg.LANG_COMPONENT_BLOCK_WEB_HELPURL,
   "File": Blockly.Msg.LANG_COMPONENT_BLOCK_FILE_HELPURL,
   "FusiontablesControl": Blockly.Msg.LANG_COMPONENT_BLOCK_FUSIONTABLESCONTROL_HELPURL,
+  "Spreadsheet": Blockly.Msg.LANG_COMPONENT_BLOCK_SPREADSHEET_HELPURL,
   "GameClient": Blockly.Msg.LANG_COMPONENT_BLOCK_GAMECLIENT_HELPURL,
   "SoundRecorder": Blockly.Msg.LANG_COMPONENT_BLOCK_SOUNDRECORDER_HELPURL,
   "Voting": Blockly.Msg.LANG_COMPONENT_BLOCK_VOTING_HELPURL,
@@ -1701,6 +1818,8 @@ Blockly.ComponentBlock.PROPERTIES_HELPURLS = {
   "Ball": Blockly.Msg.LANG_COMPONENT_BLOCK_BALL_PROPERTIES_HELPURL,
   "ImageSprite": Blockly.Msg.LANG_COMPONENT_BLOCK_IMAGESPRITE_PROPERTIES_HELPURL,
   "Map": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_HELPURL,
+  "Chart": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
+  "ChartData2D": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
   "Circle": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_CIRCLE_HELPURL,
   "FeatureCollection": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_FEATURECOLLECTION_HELPURL,
   "LineString": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_LINESTRING_HELPURL,
@@ -1760,6 +1879,7 @@ Blockly.ComponentBlock.PROPERTIES_HELPURLS = {
   "Web": Blockly.Msg.LANG_COMPONENT_BLOCK_WEB_PROPERTIES_HELPURL,
   "File": Blockly.Msg.LANG_COMPONENT_BLOCK_FILE_HELPURL,
   "FusiontablesControl": Blockly.Msg.LANG_COMPONENT_BLOCK_FUSIONTABLESCONTROL_PROPERTIES_HELPURL,
+  "Spreadsheet": Blockly.Msg.LANG_COMPONENT_BLOCK_SPREADSHEET_PROPERTIES_HELPURL,
   "GameClient": Blockly.Msg.LANG_COMPONENT_BLOCK_GAMECLIENT_PROPERTIES_HELPURL,
   "SoundRecorder": Blockly.Msg.LANG_COMPONENT_BLOCK_SOUNDRECORDER_PROPERTIES_HELPURL,
   "Voting": Blockly.Msg.LANG_COMPONENT_BLOCK_VOTING_PROPERTIES_HELPURL,
@@ -1793,6 +1913,8 @@ Blockly.ComponentBlock.EVENTS_HELPURLS = {
   "Ball": Blockly.Msg.LANG_COMPONENT_BLOCK_BALL_EVENTS_HELPURL,
   "ImageSprite": Blockly.Msg.LANG_COMPONENT_BLOCK_IMAGESPRITE_EVENTS_HELPURL,
   "Map": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_HELPURL,
+  "Chart": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
+  "ChartData2D": Blockly.Msg.LANG_COMPONENT_BLOCK_CHARTDATA2D_HELPURL,
   "Circle": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_CIRCLE_HELPURL,
   "FeatureCollection": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_FEATURECOLLECTION_HELPURL,
   "LineString": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_LINESTRING_HELPURL,
@@ -1845,6 +1967,7 @@ Blockly.ComponentBlock.EVENTS_HELPURLS = {
   "Web": Blockly.Msg.LANG_COMPONENT_BLOCK_WEB_EVENTS_HELPURL,
   "File": Blockly.Msg.LANG_COMPONENT_BLOCK_FILE_HELPURL,
   "FusiontablesControl": Blockly.Msg.LANG_COMPONENT_BLOCK_FUSIONTABLESCONTROL_EVENTS_HELPURL,
+  "Spreadsheet": Blockly.Msg.LANG_COMPONENT_BLOCK_SPREADSHEET_EVENTS_HELPURL,
   "GameClient": Blockly.Msg.LANG_COMPONENT_BLOCK_GAMECLIENT_EVENTS_HELPURL,
   "SoundRecorder": Blockly.Msg.LANG_COMPONENT_BLOCK_SOUNDRECORDER_EVENTS_HELPURL,
   "Voting": Blockly.Msg.LANG_COMPONENT_BLOCK_VOTING_EVENTS_HELPURL,
@@ -1875,6 +1998,8 @@ Blockly.ComponentBlock.METHODS_HELPURLS = {
   "Ball": Blockly.Msg.LANG_COMPONENT_BLOCK_BALL_METHODS_HELPURL,
   "ImageSprite": Blockly.Msg.LANG_COMPONENT_BLOCK_IMAGESPRITE_METHODS_HELPURL,
   "Map": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_HELPURL,
+  "Chart": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
+  "ChartData2D": Blockly.Msg.LANG_COMPONENT_BLOCK_CHART_HELPURL,
   "Circle": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_CIRCLE_HELPURL,
   "FeatureCollection": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_FEATURECOLLECTION_HELPURL,
   "LineString": Blockly.Msg.LANG_COMPONENT_BLOCK_MAPS_LINESTRING_HELPURL,
@@ -1929,6 +2054,7 @@ Blockly.ComponentBlock.METHODS_HELPURLS = {
   "Web": Blockly.Msg.LANG_COMPONENT_BLOCK_WEB_METHODS_HELPURL,
   "File": Blockly.Msg.LANG_COMPONENT_BLOCK_FILE_HELPURL,
   "FusiontablesControl": Blockly.Msg.LANG_COMPONENT_BLOCK_FUSIONTABLESCONTROL_METHODS_HELPURL,
+  "Spreadsheet": Blockly.Msg.LANG_COMPONENT_BLOCK_SPREADSHEET_METHODS_HELPURL,
   "GameClient": Blockly.Msg.LANG_COMPONENT_BLOCK_GAMECLIENT_METHODS_HELPURL,
   "SoundRecorder": Blockly.Msg.LANG_COMPONENT_BLOCK_SOUNDRECORDER_METHODS_HELPURL,
   "Voting": Blockly.Msg.LANG_COMPONENT_BLOCK_VOTING_METHODS_HELPURL,

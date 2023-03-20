@@ -99,8 +99,8 @@ public final class ListView extends AndroidViewComponent implements AdapterView.
 
   private float fontSizeMain;
   private float fontSizeDetail;
-  private int fontTypeface;
-  private int fontTypeDetail;
+  private String fontTypeface;
+  private String fontTypeDetail;
 
   /* for backward compatibility */
   private static final int DEFAULT_TEXT_SIZE = 22;
@@ -140,7 +140,12 @@ public final class ListView extends AndroidViewComponent implements AdapterView.
     txtSearchBox.setPadding(10, 10, 10, 10);
     txtSearchBox.setHint("Search list...");
     if (!AppInventorCompatActivity.isClassicMode()) {
-      txtSearchBox.setBackgroundColor(DEFAULT_BACKGROUND_COLOR);
+      txtSearchBox.setBackgroundColor(COLOR_WHITE);
+    }
+
+    if (container.$form().isDarkTheme())  {
+      txtSearchBox.setTextColor(COLOR_BLACK);
+      txtSearchBox.setHintTextColor(COLOR_BLACK);
     }
 
     //set up the listener
@@ -719,7 +724,7 @@ public final class ListView extends AndroidViewComponent implements AdapterView.
   @SimpleProperty(
           category = PropertyCategory.APPEARANCE,
           userVisible = false)
-  public int FontTypeface() {
+  public String FontTypeface() {
     return fontTypeface;
   }
 
@@ -736,7 +741,7 @@ public final class ListView extends AndroidViewComponent implements AdapterView.
           defaultValue = Component.TYPEFACE_DEFAULT + "")
   @SimpleProperty(
           userVisible = false)
-  public void FontTypeface(int typeface) {
+  public void FontTypeface(String typeface) {
     fontTypeface = typeface;
     setAdapterData();
   }
@@ -753,7 +758,7 @@ public final class ListView extends AndroidViewComponent implements AdapterView.
   @SimpleProperty(
           category = PropertyCategory.APPEARANCE,
           userVisible = false)
-  public int FontTypefaceDetail() {
+  public String FontTypefaceDetail() {
     return fontTypeDetail;
   }
 
@@ -770,7 +775,7 @@ public final class ListView extends AndroidViewComponent implements AdapterView.
           defaultValue = Component.TYPEFACE_DEFAULT + "")
   @SimpleProperty(
           userVisible = false)
-  public void FontTypefaceDetail(int typeface) {
+  public void FontTypefaceDetail(String typeface) {
     fontTypeDetail = typeface;
     setAdapterData();
   }

@@ -154,6 +154,12 @@ Use `BluetoothClient` to connect your device to other devices using Bluetooth. T
 {:id="BluetoothClient.IsConnected" .boolean .ro .bo} *IsConnected*
 : Returns `frue`{:.logic.block} if a connection to a Bluetooth device has been made.
 
+{:id="BluetoothClient.NoLocationNeeded" .boolean .do} *NoLocationNeeded*
+: On Android 12 and later, indicates that Bluetooth is not used to determine the user's location.
+
+{:id="BluetoothClient.PollingRate" .number} *PollingRate*
+: Returns the configured polling rate value of the Bluetooth Client.
+
 {:id="BluetoothClient.Secure" .boolean} *Secure*
 : Specifies whether a secure connection should be used.
 
