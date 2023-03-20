@@ -728,41 +728,6 @@ Blockly.ReplMgr.putYail = (function() {
                 }
             }
 
-            conn.open('POST', rs.url, true);
-            conn.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    var json = goog.json.parse(this.response);
-                    if (json.status != 'OK') {
-                        if (work.failure)
-                            work.failure(Blockly.Msg.REPL_ERROR_FROM_COMPANION);
-                    } else {
-                        if (work.success)
-                            work.success();
-                    }
-                    Blockly.ReplMgr.processRetvals(json.values);
-                    rs.seq_count += 1;
-                    if (rs.phoneState.initialized) { // Only continue if we are still initialized
-                        rs.phoneState.ioRunning = false;
-                        console.log("calling pollphone 4");
-                        console.log(json);
-                        engine.pollphone(); // And on to the next!
-                    }
-                } else {
-                    if (this.readyState == 4) {
-                        console.log("putYail(poller): status = " + this.status);
-                        if (work.failure) {
-                            work.failure(Blockly.Msg.REPL_NETWORK_CONNECTION_ERROR);
-                        }
-                        var dialog = new Blockly.Util.Dialog(Blockly.Msg.REPL_NETWORK_ERROR, Blockly.Msg.REPL_NETWORK_ERROR_RESTART, Blockly.Msg.REPL_OK, false, null, 0,
-                            function() {
-                                dialog.hide();
-                                context.hardreset(context.formName);
-                            });
-                        engine.resetcompanion();
-                    }
-                }
-
-            };
             var encoder = new goog.Uri.QueryData();
             console.log('Low Level Sending: ' + work.code)
             encoder.add('mac', Blockly.ReplMgr.hmac(work.code + rs.seq_count + blockid));
