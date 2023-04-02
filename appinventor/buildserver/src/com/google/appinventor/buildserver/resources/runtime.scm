@@ -3224,6 +3224,12 @@ Dictionary implementation.
       default
       result)))
 
+(define (yail-dictionary-find-key-list key yail-dictionary default)
+  (let ((result (YailDictionary:findKeyList (as YailDictionary yail-dictionary) key)))
+    (if (eq? result #!null)
+      default
+      result)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; End of Dictionary implementation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

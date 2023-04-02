@@ -387,6 +387,41 @@ public class YailDictionary extends LinkedHashMap<Object, Object>
     return null;
   }
 
+  @SuppressWarnings("WeakerAccess")  // called from runtime.scm
+  public static YailList findKeyList(Object target, Object targetKey) {
+    List<Object> values = findKeyListImpl(target, targetKey);
+    return YailList.makeList(values);
+  }
+
+  private static List<Object> findKeyListImpl(Object target, Object targetKey) {
+    List<Object> values = new ArrayList();
+    if (target instanceof YailDictionary) {
+      Set<?> keys = ((YailDictionary) target).keySet();
+      Iterator<?> keyItr = keys.iterator();
+      while (keyItr.hasNext()) {
+        Object key = keyItr.next();
+        Object val = ((YailDictionary) target).get(key);
+        if (key.equals(targetKey)) {
+          values.add(val);
+        }
+        if (val instanceof YailDictionary || val instanceof YailList) {
+          List<Object> recurseResult = findKeyListImpl(val, targetKey);
+          values.addAll(recurseResult);
+        }
+      }
+    } else if (target instanceof YailList) {
+      Iterator<?> listItr = ((YailList) target).iterator();
+      while (listItr.hasNext()) {
+        Object val = listItr.next();
+        if (val instanceof YailDictionary || val instanceof YailList) {
+          List<Object> recurseResult = findKeyListImpl(val, targetKey);
+          values.addAll(recurseResult);
+        }
+      }
+    }
+    return values;
+  }
+
   private static int keyToIndex(List<?> target, Object key) {
     int offset = target instanceof YailList ? 0 : 1;
     int index;

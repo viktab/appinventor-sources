@@ -719,9 +719,13 @@
 	"Blockly.Msg.LANG_DICTIONARIES_WALK_TREE_ALL_TOOLTIP": "Used in the list by walking key path block, explores every node at a given level on the walk.",
 	"Blockly.Msg.LANG_DICTIONARIES_WALK_TREE_ALL_HELPURL": "/reference/blocks/dictionaries.html#walk-all-at-level",
 
-	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TITLE": "find key %1 in dictionary %2 or if not found %3",
+	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TITLE": "find first value for key %1 in dictionary %2 or if not found %3",
 	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TOOLTIP": "Searches the entire dictionary recursively and returns the first value found for the given key.",
 	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_HELPURL": "/reference/blocks/dictionaries.html#find-key",
+
+	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TITLE": "find all values for key %1 in dictionary %2 or if not found %3",
+	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TOOLTIP": "Searches the entire dictionary recursively and returns all values found for the given key.",
+	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_HELPURL": "/reference/blocks/dictionaries.html#find-key-list",
 
 	"Blockly.Msg.LANG_DICTIONARIES_IS_DICT_TITLE": "is a dictionary? %1",
 	"Blockly.Msg.LANG_DICTIONARIES_IS_DICT_TOOLTIP": "Tests if something is a dictionary.",
