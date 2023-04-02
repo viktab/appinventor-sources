@@ -243,11 +243,10 @@ Blockly.Yail['dictionaries_find_key'] = function() {
 Blockly.Yail['dictionaries_find_key_list'] = function() {
   var key = Blockly.Yail.valueToCode(this, 'KEY', Blockly.Yail.ORDER_NONE) || Blockly.Yail.YAIL_FALSE;
   var dict = Blockly.Yail.valueToCode(this, 'DICT', Blockly.Yail.ORDER_NONE) || Blockly.Yail.YAIL_EMPTY_DICT;
-  var notfound = Blockly.Yail.valueToCode(this, 'NOTFOUND', Blockly.Yail.ORDER_NONE) || Blockly.Yail.YAIL_NULL;
   var code = Blockly.Yail.YAIL_CALL_YAIL_PRIMITIVE + 'yail-dictionary-find-key-list' + Blockly.Yail.YAIL_SPACER +
       Blockly.Yail.YAIL_OPEN_COMBINATION + Blockly.Yail.YAIL_LIST_CONSTRUCTOR + Blockly.Yail.YAIL_SPACER +
-      key + Blockly.Yail.YAIL_SPACER + dict + Blockly.Yail.YAIL_SPACER + notfound + Blockly.Yail.YAIL_CLOSE_COMBINATION + 
-      Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_QUOTE + Blockly.Yail.YAIL_OPEN_COMBINATION + 'key any any' + 
+      key + Blockly.Yail.YAIL_SPACER + dict + Blockly.Yail.YAIL_CLOSE_COMBINATION + 
+      Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_QUOTE + Blockly.Yail.YAIL_OPEN_COMBINATION + 'key any' + 
       Blockly.Yail.YAIL_CLOSE_COMBINATION + Blockly.Yail.YAIL_SPACER + Blockly.Yail.YAIL_DOUBLE_QUOTE + 
       "find key list in dictionary" + Blockly.Yail.YAIL_DOUBLE_QUOTE + Blockly.Yail.YAIL_CLOSE_COMBINATION;
   return [code, Blockly.Yail.ORDER_ATOMIC];

@@ -723,7 +723,7 @@
 	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_TOOLTIP": "Searches the entire dictionary recursively and returns the first value found for the given key.",
 	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_HELPURL": "/reference/blocks/dictionaries.html#find-key",
 
-	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TITLE": "find all values for key %1 in dictionary %2 or if not found %3",
+	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TITLE": "find all values for key %1 in dictionary %2",
 	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TOOLTIP": "Searches the entire dictionary recursively and returns all values found for the given key.",
 	"Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_HELPURL": "/reference/blocks/dictionaries.html#find-key-list",
 

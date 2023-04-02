@@ -530,12 +530,10 @@ Blockly.Blocks['dictionaries_find_key_list'] = {
   init: function() {
     this.setColour(Blockly.DICTIONARY_CATEGORY_HUE);
     var checkTypeDict = Blockly.Blocks.Utilities.YailTypeToBlocklyType("dictionary",Blockly.Blocks.Utilities.INPUT);
-    var checkTypeAny = Blockly.Blocks.Utilities.YailTypeToBlocklyType("any",Blockly.Blocks.Utilities.INPUT);
     var checkTypeKey = Blockly.Blocks.Utilities.YailTypeToBlocklyType("key",Blockly.Blocks.Utilities.INPUT);
     this.interpolateMsg(Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TITLE,
       ['KEY', checkTypeKey, Blockly.ALIGN_RIGHT],
       ['DICT', checkTypeDict, Blockly.ALIGN_RIGHT],
-      ['NOTFOUND', checkTypeAny, Blockly.ALIGN_RIGHT],
       Blockly.ALIGN_LEFT);
     this.setOutput(true, Blockly.Blocks.Utilities.YailTypeToBlocklyType("list",Blockly.Blocks.Utilities.OUTPUT));
     this.setTooltip(Blockly.Msg.LANG_DICTIONARIES_FIND_KEY_LIST_TOOLTIP);
