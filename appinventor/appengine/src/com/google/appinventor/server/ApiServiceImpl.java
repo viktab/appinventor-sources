@@ -159,7 +159,7 @@ public class ApiServiceImpl extends OdeRemoteServiceServlet
         componentJSON.put("categoryString", "API");
         componentJSON.put("helpString", "");
         componentJSON.put("showOnPalette", "true");
-        componentJSON.put("iconName", "ball.png"); // TODO update
+        componentJSON.put("iconName", "images/api.png");
         componentJSON.put("type", "text"); // TODO make this API-specific
         componentJSON.put("isAPI", "true");
 

@@ -792,4 +792,10 @@ public interface Images extends Resources {
    */
   @Source("com/google/appinventor/images/dataFile.png")
   ImageResource dataFile();
+
+  /**
+   * Designer palette icon for any imported API component
+   */
+  @Source("com/google/appinventor/images/api.png")
+  ImageResource api();
 }

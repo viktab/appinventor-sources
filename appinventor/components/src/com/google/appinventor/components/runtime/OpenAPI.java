@@ -77,6 +77,7 @@ import com.google.appinventor.components.runtime.util.SdkLevel;
     category = ComponentCategory.API,
     nonVisible = true,
     showOnPalette = false,
+    iconName = "images/api.png",
     description = "OpenAPI component")
 @SimpleObject
 public final class OpenAPI extends AndroidNonvisibleComponent implements Component {
@@ -187,11 +188,11 @@ public final class OpenAPI extends AndroidNonvisibleComponent implements Compone
     String url = serverURL + path;
     final String urlWithParams = getUrl(url, argsInfo, args);
 
-    handler.post(new Runnable() {
-      public void run() {
-        toastNow(urlWithParams);
-      }
-    });
+    // handler.post(new Runnable() {
+    //   public void run() {
+    //     toastNow(urlWithParams);
+    //   }
+    // });
 
     String[] functionNameParts = functionName.split("_");
     final String restWord = functionNameParts[0];
