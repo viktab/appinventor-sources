@@ -1071,6 +1071,11 @@ Blockly.Blocks.component_method = {
         }
       }
 
+      var isAPI = componentType['componentInfo']['categoryString'] == "API";
+      if (isAPI) { // params can change for API blocks
+        return !modifiedReturnType;
+      }
+
       return !(modifiedParameters || modifiedReturnType);
        // passed all our tests! block is defined!
     };
