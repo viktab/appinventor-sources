@@ -163,6 +163,10 @@ class ComponentDatabase implements ComponentDatabaseInterface {
       throw new ComponentNotFoundException(componentName);
     }
 
+    if (component.getIsAPI()) {
+      return componentName;
+    }
+
     return component.getType();
   }
 

@@ -768,10 +768,11 @@ public final class YaProjectEditor extends ProjectEditor implements ProjectChang
     // aggregate types in the same package
     for (String type : removedTypes) {
       Set<String> siblings = extensionsInNode.get(extensionToNodeName.get(COMPONENT_DATABASE.getComponentType(type)));
+      boolean isAPI = COMPONENT_DATABASE.getIsAPI(type);
       if (siblings != null) {
         for (String siblingType : siblings) {
           String siblingName = siblingType.substring(siblingType.lastIndexOf('.') + 1);
-          if (!removedTypes.contains(siblingName)) {
+          if (!removedTypes.contains(siblingName) && !isAPI) { // API names might have periods. Don't try splitting them
             componentTypes.add(siblingName);
           }
         }
